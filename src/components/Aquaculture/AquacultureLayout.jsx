@@ -1,8 +1,8 @@
 // src/layouts/AquacultureLayout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Header from "../components/Aquaculture/Header.jsx";   // adjust path
-import Sidebar from "../components/Aquaculture/Sidebar.jsx"; // adjust path
+import Header from "./Header.jsx";   // adjust path
+import Sidebar from "./Sidebar.jsx"; // adjust path
 
 export default function AquacultureLayout() {
   return (

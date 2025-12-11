@@ -27,7 +27,7 @@ import GrowthMonitoring from "./pages/mariculture/GrowthMonitoring";
 import HarvestManagement from "./pages/mariculture/HarvestManagement";
 
 // ===== Aquaculture (user-side) imports =====
-import AquacultureLayout from "./layouts/AquacultureLayout.jsx";
+import AquacultureLayout from "./components/Aquaculture/AquacultureLayout.jsx";
 import HarvestBatchPage from "./pages/Aquapage/HarvestBatchPage";
 import AquacultureDashboard from "./pages/Aquapage/AquacultureDashboard.jsx";
 import PondListPage from "./pages/Aquapage/PondListPage.jsx";
@@ -91,6 +91,7 @@ export default function App() {
 
       {/* ===== AQUACULTURE USER MODULE (from HEAD) ===== */}
       <Route path="/aquaculture" element={<AquacultureLayout />}>
+      <Route index element={<AquacultureDashboard />} />
         {/* Dashboard */}
         <Route path="dashboard" element={<AquacultureDashboard />} />
 
