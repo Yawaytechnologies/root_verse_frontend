@@ -1,7 +1,7 @@
 // src/layouts/MaricultureLayout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
-import MaricultureSidebar from "../components/mariculture/MaricultureSidebar";
+import MaricultureSidebar from "../MaricultureSidebar";
 
 export default function MaricultureLayout() {
   return (

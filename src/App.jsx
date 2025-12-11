@@ -17,7 +17,7 @@ import MariDashboard from "./components/admin/mariculture/MariDashboard";
 import MariRegister from "./components/admin/mariculture/MariRegister";
 
 // ===== Mariculture (separate module) imports =====
-import MaricultureLayout from "./layout/MaricultureLayout";
+import MaricultureLayout from "./components/mariculture/layout/MaricultureLayout";
 import MaricultureDashboard from "./pages/mariculture/MaricultureDashboard";
 import FarmRegistry from "./pages/mariculture/FarmRegistry";
 import CultivationUnits from "./pages/mariculture/CultivationUnits";
