@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply min-h-screen bg-gray-200;
+  }
+
+  body {
+    @apply text-slate-900;
+  }
+}
 /* global.css (or wherever your Tailwind base styles are imported) */
 
 @keyframes slide-in-left {
