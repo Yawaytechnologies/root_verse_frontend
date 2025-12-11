@@ -1,7 +1,7 @@
 // src/modules/admin/ui/AdminSidebar.jsx
 import { NavLink } from "react-router-dom";
-import { FiHome, FiAnchor, FiX } from "react-icons/fi";
-
+import { FiHome, FiAnchor, FiX, FiGrid } from "react-icons/fi";
+import { Link } from "react-router-dom";
 const nav = [
   { to: "/admin", label: "Dashboard", icon: FiHome,  },
   {
@@ -133,6 +133,21 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
             );
           })}
         </nav>
+      </div>
+      {/* 🔻 Bottom "Back to Registry Hub" button */}
+      <div className="border-t border-slate-300 px-4 py-3">
+        <Link
+          to="/admin/hub" // change this if your route is different
+          className={[
+            "flex items-center justify-center rounded-xl text-xs font-semibold",
+            "bg-white text-slate-800 shadow-sm hover:bg-slate-100",
+            "transition-colors duration-150",
+            collapsed ? "h-10 w-10 mx-auto" : "h-10 w-full gap-2",
+          ].join(" ")}
+        >
+          <FiGrid className="h-4 w-4" />
+          {!collapsed && <span>Back to Registry Hub</span>}
+        </Link>
       </div>
     </div>
   );
