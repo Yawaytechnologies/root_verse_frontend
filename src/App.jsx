@@ -1,9 +1,33 @@
 // src/App.jsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import "./global.css";
 
+// ===== Admin side imports =====
+import AdminLoginPage from "./pages/admin/AdminLogin";
+import WildCaptureLayout from "./components/admin/wildcapture/WildCaptureLayout";
+import RegistryHubPage from "./components/admin/RegistryHub";
+import WildCaptureDashboard from "./components/admin/wildcapture/WildCaptureDashboard";
+import VesselRegistryManagement from "./components/admin/wildcapture/VesselRegistry";
+
+import AquaLayout from "./components/admin/aquaculture/AquaLayout";
+import AquaDashboard from "./components/admin/aquaculture/AquaDashboard";
+import AquaRegister from "./components/admin/aquaculture/AquaRegister";
+
+import MariLayout from "./components/admin/mariculture/MariLayout";
+import MariDashboard from "./components/admin/mariculture/MariDashboard";
+import MariRegister from "./components/admin/mariculture/MariRegister";
+
+// ===== Mariculture (separate module) imports =====
+import MaricultureLayout from "./layout/MaricultureLayout";
+import MaricultureDashboard from "./pages/mariculture/MaricultureDashboard";
+import FarmRegistry from "./pages/mariculture/FarmRegistry";
+import CultivationUnits from "./pages/mariculture/CultivationUnits";
+import GrowthMonitoring from "./pages/mariculture/GrowthMonitoring";
+import HarvestManagement from "./pages/mariculture/HarvestManagement";
+
+// ===== Aquaculture (user-side) imports =====
 import AquacultureLayout from "./layouts/AquacultureLayout.jsx";
-
 import HarvestBatchPage from "./pages/Aquapage/HarvestBatchPage";
 import AquacultureDashboard from "./pages/Aquapage/AquacultureDashboard.jsx";
 import PondListPage from "./pages/Aquapage/PondListPage.jsx";
@@ -13,19 +37,61 @@ import WaterLogPage from "./pages/Aquapage/WaterLogPage.jsx";
 import HealthLogPage from "./pages/Aquapage/HealthLogPage.jsx";
 import CrateAssignmentPage from "./pages/Aquapage/CrateAssignmentPage";
 import TraceabilityLookupPage from "./pages/Aquapage/TraceabilityLookupPage";
-import "./global.css";
 
-function App() {
+export default function App() {
   return (
     <Routes>
-      {/* Root -> redirect to aquaculture dashboard */}
-      <Route
-        path="/"
-        element={<Navigate to="/aquaculture/dashboard" replace />}
-      />
+      {/* ===== DEFAULT REDIRECT ===== */}
+      {/* Currently root goes to Admin Login */}
+      <Route path="/" element={<Navigate to="/admin/login" replace />} />
+      {/* If you want user-side aqua default later:
+          <Route path="/" element={<Navigate to="/aquaculture/dashboard" replace />} />
+      */}
 
-      {/* ✅ Aquaculture-only layout */}
+      {/* ===== ADMIN SIDE ROUTES ===== */}
+
+      {/* Auth + Hub */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/hub" element={<RegistryHubPage />} />
+
+      {/* Wild-capture admin app */}
+      <Route path="/admin/wild-capture" element={<WildCaptureLayout />}>
+        <Route index element={<WildCaptureDashboard />} />
+        <Route path="vessels" element={<VesselRegistryManagement />} />
+      </Route>
+
+      {/* Aquaculture admin app */}
+      <Route path="/admin/aqua-culture" element={<AquaLayout />}>
+        <Route index element={<AquaDashboard />} />
+        <Route path="ponds" element={<AquaRegister />} />
+      </Route>
+
+      {/* Mariculture admin app */}
+      <Route path="/admin/mari-culture" element={<MariLayout />}>
+        <Route index element={<MariDashboard />} />
+        <Route path="oceanfarm" element={<MariRegister />} />
+      </Route>
+
+      {/* ===== SEPARATE MARICULTURE MODULE (non-admin) ===== */}
+      <Route path="/mariculture" element={<MaricultureLayout />}>
+        {/* default: /mariculture */}
+        <Route index element={<MaricultureDashboard />} />
+
+        {/* also allow /mariculture/dashboard explicitly */}
+        <Route path="dashboard" element={<MaricultureDashboard />} />
+
+        {/* Registry */}
+        <Route path="farms" element={<FarmRegistry />} />
+        <Route path="units" element={<CultivationUnits />} />
+
+        {/* Operations */}
+        <Route path="growth" element={<GrowthMonitoring />} />
+        <Route path="harvests" element={<HarvestManagement />} />
+      </Route>
+
+      {/* ===== AQUACULTURE USER MODULE (from HEAD) ===== */}
       <Route path="/aquaculture" element={<AquacultureLayout />}>
+        {/* Dashboard */}
         <Route path="dashboard" element={<AquacultureDashboard />} />
 
         {/* Pond list + details */}
@@ -43,12 +109,9 @@ function App() {
         <Route path="logs/health" element={<HealthLogPage />} />
       </Route>
 
-      {/* Later:
-      <Route path="/wild-capture" element={<WildLayout />}>...</Route>
-      <Route path="/mariculture" element={<MaricultureLayout />}>...</Route>
-      */}
+      {/* ===== 404 FALLBACK ===== */}
+      <Route path="*" element={<Navigate to="/admin/login" replace />} />
+      {/* Or change to: <Navigate to="/mariculture" replace /> or /aquaculture/dashboard depending on main app */}
     </Routes>
   );
 }
-
-export default App;
