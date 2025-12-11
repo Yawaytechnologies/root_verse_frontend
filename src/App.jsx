@@ -2,8 +2,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Header from "./components/Aquaculture/Header.jsx";
-import Sidebar from "./components/Aquaculture/Sidebar.jsx";
+import AquacultureLayout from "./layouts/AquacultureLayout.jsx";
+
 import HarvestBatchPage from "./pages/Aquapage/HarvestBatchPage";
 import AquacultureDashboard from "./pages/Aquapage/AquacultureDashboard.jsx";
 import PondListPage from "./pages/Aquapage/PondListPage.jsx";
@@ -17,57 +17,37 @@ import "./global.css";
 
 function App() {
   return (
-    <div className="min-h-screen flex">
-      {/* Common sidebar */}
-      <Sidebar />
+    <Routes>
+      {/* Root -> redirect to aquaculture dashboard */}
+      <Route
+        path="/"
+        element={<Navigate to="/aquaculture/dashboard" replace />}
+      />
 
-      {/* Right side: header + routed content */}
-      <div className="flex-1 flex flex-col">
-        <Header />
+      {/* ✅ Aquaculture-only layout */}
+      <Route path="/aquaculture" element={<AquacultureLayout />}>
+        <Route path="dashboard" element={<AquacultureDashboard />} />
 
-        <main className="flex-1 px-4 md:px-6 py-4 md:py-6 overflow-y-auto">
-          <Routes>
-            {/* default redirect */}
-            <Route
-              path="/"
-              element={<Navigate to="/aquaculture/dashboard" replace />}
-            />
+        {/* Pond list + details */}
+        <Route path="ponds" element={<PondListPage />} />
+        <Route path="ponds/:pondId" element={<PondDetailsPage />} />
 
-            {/* Dashboard */}
-            <Route
-              path="/aquaculture/dashboard"
-              element={<AquacultureDashboard />}
-            />
+        {/* Harvest / crates / traceability */}
+        <Route path="harvest-batches" element={<HarvestBatchPage />} />
+        <Route path="crates" element={<CrateAssignmentPage />} />
+        <Route path="traceability" element={<TraceabilityLookupPage />} />
 
-            {/* Pond list + details */}
-            <Route path="/aquaculture/ponds" element={<PondListPage />} />
-            <Route
-              path="/aquaculture/ponds/:pondId"
-              element={<PondDetailsPage />}
-            />
-            <Route
-              path="/aquaculture/harvest-batches"
-              element={<HarvestBatchPage />}
-            />
-            <Route
-              path="/aquaculture/crates"
-              element={<CrateAssignmentPage />}
-            />
-            <Route
-              path="/aquaculture/traceability"
-              element={<TraceabilityLookupPage />}
-            />
-            {/* Daily logs */}
-            <Route path="/aquaculture/logs/feed" element={<FeedLogPage />} />
-            <Route path="/aquaculture/logs/water" element={<WaterLogPage />} />
-            <Route
-              path="/aquaculture/logs/health"
-              element={<HealthLogPage />}
-            />
-          </Routes>
-        </main>
-      </div>
-    </div>
+        {/* Daily logs */}
+        <Route path="logs/feed" element={<FeedLogPage />} />
+        <Route path="logs/water" element={<WaterLogPage />} />
+        <Route path="logs/health" element={<HealthLogPage />} />
+      </Route>
+
+      {/* Later:
+      <Route path="/wild-capture" element={<WildLayout />}>...</Route>
+      <Route path="/mariculture" element={<MaricultureLayout />}>...</Route>
+      */}
+    </Routes>
   );
 }
 

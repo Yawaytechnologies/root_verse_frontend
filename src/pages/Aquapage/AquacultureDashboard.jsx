@@ -147,7 +147,7 @@ export default function AquacultureDashboard() {
             </div>
           </div>
 
-          {/* KPI pills inside the card – neutral style */}
+          {/* KPI pills */}
           <div className="grid gap-2 md:gap-3 sm:grid-cols-2">
             {kpiPills.map(({ label, value, icon: Icon, helper }) => (
               <div
@@ -207,7 +207,7 @@ export default function AquacultureDashboard() {
         </div>
       </section>
 
-      {/* MIDDLE: BIOMASS / FEED SUMMARY – accent cards */}
+      {/* MIDDLE: BIOMASS / FEED SUMMARY */}
       <section className="grid gap-3 md:gap-4 md:grid-cols-2 xl:grid-cols-3">
         {summaryStats.map(
           ({ title, value, description, icon: Icon, color, accent }) => (
