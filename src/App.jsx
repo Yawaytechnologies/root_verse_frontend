@@ -7,7 +7,7 @@ import "./global.css";
 import AdminLoginPage from "./pages/admin/AdminLogin";
 import WildCaptureLayout from "./components/admin/wildcapture/WildCaptureLayout";
 import RegistryHubPage from "./components/admin/RegistryHub";
-import WildCaptureDashboard from "./components/admin/wildcapture/WildCaptureDashboard";
+import AdminWildCaptureDashboard from "./components/admin/wildcapture/WildCaptureDashboard";
 import VesselRegistryManagement from "./components/admin/wildcapture/VesselRegistry";
 
 import AquaLayout from "./components/admin/aquaculture/AquaLayout";
@@ -26,7 +26,7 @@ import CultivationUnits from "./pages/mariculture/CultivationUnits";
 import GrowthMonitoring from "./pages/mariculture/GrowthMonitoring";
 import HarvestManagement from "./pages/mariculture/HarvestManagement";
 
-// ===== Aquaculture (user-side) imports =====
+// ===== Aquaculture (user module) imports =====
 import AquacultureLayout from "./components/Aquaculture/AquacultureLayout.jsx";
 import HarvestBatchPage from "./pages/Aquapage/HarvestBatchPage";
 import AquacultureDashboard from "./pages/Aquapage/AquacultureDashboard.jsx";
@@ -37,6 +37,13 @@ import WaterLogPage from "./pages/Aquapage/WaterLogPage.jsx";
 import HealthLogPage from "./pages/Aquapage/HealthLogPage.jsx";
 import CrateAssignmentPage from "./pages/Aquapage/CrateAssignmentPage";
 import TraceabilityLookupPage from "./pages/Aquapage/TraceabilityLookupPage";
+
+// ===== Wild Capture (user console) imports – from HEAD =====
+import WildCaptureUserDashboard from "./pages/wildPage/WildCaptureDashboard";
+import TripsPage from "./pages/wildPage/TripsPage";
+import CatchLogsPage from "./pages/wildPage/CatchLogsPage";
+import VesselRegistryPage from "./pages/wildPage/VesselRegistryPage";
+import CratesPage from "./pages/wildPage/CratesPage";
 
 export default function App() {
   return (
@@ -56,7 +63,7 @@ export default function App() {
 
       {/* Wild-capture admin app */}
       <Route path="/admin/wild-capture" element={<WildCaptureLayout />}>
-        <Route index element={<WildCaptureDashboard />} />
+        <Route index element={<AdminWildCaptureDashboard />} />
         <Route path="vessels" element={<VesselRegistryManagement />} />
       </Route>
 
@@ -72,7 +79,7 @@ export default function App() {
         <Route path="oceanfarm" element={<MariRegister />} />
       </Route>
 
-      {/* ===== SEPARATE MARICULTURE MODULE (non-admin) ===== */}
+      {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
       <Route path="/mariculture" element={<MaricultureLayout />}>
         {/* default: /mariculture */}
         <Route index element={<MaricultureDashboard />} />
@@ -89,9 +96,9 @@ export default function App() {
         <Route path="harvests" element={<HarvestManagement />} />
       </Route>
 
-      {/* ===== AQUACULTURE USER MODULE (from HEAD) ===== */}
+      {/* ===== AQUACULTURE USER MODULE ===== */}
       <Route path="/aquaculture" element={<AquacultureLayout />}>
-      <Route index element={<AquacultureDashboard />} />
+        <Route index element={<AquacultureDashboard />} />
         {/* Dashboard */}
         <Route path="dashboard" element={<AquacultureDashboard />} />
 
@@ -110,9 +117,16 @@ export default function App() {
         <Route path="logs/health" element={<HealthLogPage />} />
       </Route>
 
+      {/* ===== WILD CAPTURE USER CONSOLE (from HEAD) ===== */}
+      {/* Uses AppLayout inside each page, paths match your navItems */}
+      <Route path="/wild-capture" element={<WildCaptureUserDashboard />} />
+      <Route path="/trips" element={<TripsPage />} />
+      <Route path="/catch-logs" element={<CatchLogsPage />} />
+      <Route path="/vessels" element={<VesselRegistryPage />} />
+      <Route path="/crates" element={<CratesPage />} />
+
       {/* ===== 404 FALLBACK ===== */}
       <Route path="*" element={<Navigate to="/admin/login" replace />} />
-      {/* Or change to: <Navigate to="/mariculture" replace /> or /aquaculture/dashboard depending on main app */}
     </Routes>
   );
 }
