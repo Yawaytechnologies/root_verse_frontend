@@ -9,6 +9,11 @@ import WildCaptureLayout from "./components/admin/wildcapture/WildCaptureLayout"
 import RegistryHubPage from "./components/admin/RegistryHub";
 import AdminWildCaptureDashboard from "./components/admin/wildcapture/WildCaptureDashboard";
 import VesselRegistryManagement from "./components/admin/wildcapture/VesselRegistry";
+import VesselTrips from "./components/admin/wildcapture/VesselTrips.jsx";
+import Catch from "./components/admin/wildcapture/CatchLogs.jsx";
+import LandingQCPage from "./components/admin/wildcapture/LandingQC.jsx";
+import OwnerRegistration from "./components/admin/wildcapture/OwnerRegister.jsx";
+
 
 import AquaLayout from "./components/admin/aquaculture/AquaLayout";
 import AquaDashboard from "./components/admin/aquaculture/AquaDashboard";
@@ -65,6 +70,11 @@ export default function App() {
       <Route path="/admin/wild-capture" element={<WildCaptureLayout />}>
         <Route index element={<AdminWildCaptureDashboard />} />
         <Route path="vessels" element={<VesselRegistryManagement />} />
+        <Route path="vesseltrips" element={<VesselTrips />} />
+        <Route path="catch-logs" element={<Catch />} />
+        <Route path="landing-qc" element={<LandingQCPage />} />
+        <Route path="owner-register" element={<OwnerRegistration />} />
+        
       </Route>
 
       {/* Aquaculture admin app */}
