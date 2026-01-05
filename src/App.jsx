@@ -9,11 +9,13 @@ import WildCaptureLayout from "./components/admin/wildcapture/WildCaptureLayout"
 import RegistryHubPage from "./components/admin/RegistryHub";
 import AdminWildCaptureDashboard from "./components/admin/wildcapture/WildCaptureDashboard";
 import VesselRegistryManagement from "./components/admin/wildcapture/VesselRegistry";
-import VesselTrips from "./components/admin/wildcapture/VesselTrips.jsx";
+
 import Catch from "./components/admin/wildcapture/CatchLogs.jsx";
 import LandingQCPage from "./components/admin/wildcapture/LandingQC.jsx";
 import OwnerRegistration from "./components/admin/wildcapture/OwnerRegister.jsx";
-
+import QrGeneratorPage from "./components/admin/wildcapture/AdminQrGenerator.jsx";
+import VesselOwner from "./components/admin/wildcapture/VesselOwner.jsx";
+import TripApproval from "./components/admin/wildcapture/TripApproval.jsx";
 
 import AquaLayout from "./components/admin/aquaculture/AquaLayout";
 import AquaDashboard from "./components/admin/aquaculture/AquaDashboard";
@@ -69,12 +71,15 @@ export default function App() {
       {/* Wild-capture admin app */}
       <Route path="/admin/wild-capture" element={<WildCaptureLayout />}>
         <Route index element={<AdminWildCaptureDashboard />} />
+        <Route path="dashboard" element={<AdminWildCaptureDashboard />} />
         <Route path="vessels" element={<VesselRegistryManagement />} />
-        <Route path="vesseltrips" element={<VesselTrips />} />
-        <Route path="catch-logs" element={<Catch />} />
+       
+        {/* <Route path="catch-logs" element={<Catch />} />
         <Route path="landing-qc" element={<LandingQCPage />} />
-        <Route path="owner-register" element={<OwnerRegistration />} />
-        
+        <Route path="owner-register" element={<OwnerRegistration />} /> */}
+        <Route path="qr-generator" element={<QrGeneratorPage />} />
+        <Route path="vessel-owner" element={<VesselOwner/>}/>
+        <Route path="trip-approval" element={<TripApproval/>}/>
       </Route>
 
       {/* Aquaculture admin app */}
