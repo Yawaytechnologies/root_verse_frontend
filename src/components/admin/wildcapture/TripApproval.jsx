@@ -4,10 +4,15 @@ import { FiEye, FiRefreshCcw, FiAlertTriangle, FiX } from "react-icons/fi";
 import { getTrips, approveTrip } from "../../../redux/action/tripapprovalActions";
 import { clearApproveError } from "../../../redux/reducer/tripapprovalSlice";
 
-function fmtDate(v) {
-  if (!v) return "—";
+function dateParts(v) {
+  if (!v) return { date: "—", time: "" };
   const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString();
+  if (Number.isNaN(d.getTime())) return { date: String(v), time: "" };
+
+  // compact + consistent
+  const date = d.toLocaleDateString("en-GB"); // dd/mm/yyyy
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return { date, time };
 }
 
 function money(v) {
@@ -61,7 +66,6 @@ export default function TripApprovalTable() {
   const tryApprove = async (trip) => {
     if (!trip?.id) return;
     if ((trip.approval_status || "").toLowerCase() === "approved") return;
-
     dispatch(clearApproveError(trip.id));
     await dispatch(approveTrip({ id: trip.id }));
   };
@@ -104,6 +108,8 @@ export default function TripApprovalTable() {
             {rows.map((t) => {
               const approving = !!approvingById[t.id];
               const err = approveErrorById?.[t.id];
+              const p = dateParts(t.planned_at);
+              const a = dateParts(t.arrival_at);
 
               return (
                 <div key={t.id} className="p-4">
@@ -115,11 +121,11 @@ export default function TripApprovalTable() {
                       <div className="truncate text-[12px] text-slate-500 mt-0.5">
                         {t.near_station} • {t.fishing_method}
                       </div>
-                      <div className="text-[12px] text-slate-500 mt-0.5">
-                        Planned: <span className="font-medium">{fmtDate(t.planned_at)}</span>
+                      <div className="text-[12px] text-slate-500 mt-1">
+                        Planned: <span className="font-medium">{p.date} {p.time && `(${p.time})`}</span>
                       </div>
                       <div className="text-[12px] text-slate-500">
-                        Arrival: <span className="font-medium">{fmtDate(t.arrival_at)}</span>
+                        Arrival: <span className="font-medium">{a.date} {a.time && `(${a.time})`}</span>
                       </div>
                     </div>
 
@@ -140,21 +146,15 @@ export default function TripApprovalTable() {
                     <select
                       className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800"
                       value={(t.approval_status || "pending").toLowerCase()}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        if (next === "approved") tryApprove(t);
-                      }}
+                      onChange={(e) => e.target.value === "approved" && tryApprove(t)}
                       disabled={approving || (t.approval_status || "").toLowerCase() === "approved"}
-                      title="Change status"
                     >
                       <option value="pending">pending</option>
                       <option value="approved">approved</option>
                     </select>
                   </div>
 
-                  {err && (
-                    <div className="mt-2 text-[12px] text-rose-700">{err}</div>
-                  )}
+                  {err && <div className="mt-2 text-[12px] text-rose-700">{err}</div>}
                 </div>
               );
             })}
@@ -162,23 +162,35 @@ export default function TripApprovalTable() {
         )}
       </div>
 
-      {/* ✅ DESKTOP: table (md+) */}
-      <div className="hidden md:block w-full overflow-x-auto">
+      {/* ✅ DESKTOP: NO SCROLL + compact cells */}
+      <div className="hidden md:block w-full overflow-x-auto lg:overflow-x-hidden">
         <table className="w-full table-fixed">
+          {/* ✅ Hard control widths so it fits */}
+          <colgroup>
+            <col className="w-[22%]" /> {/* Trip */}
+            <col className="w-[16%]" /> {/* Station */}
+            <col className="w-[12%]" /> {/* Method */}
+            <col className="w-[14%]" /> {/* Planned */}
+            <col className="w-[14%]" /> {/* Arrival */}
+            <col className="w-[6%]" />  {/* QR */}
+            <col className="w-[12%]" /> {/* Status */}
+            <col className="w-[4%]" />  {/* View */}
+          </colgroup>
+
           <thead className="bg-slate-100">
             <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-              <th className="px-4 py-3 w-[22%]">Trip</th>
-              <th className="px-4 py-3 w-[16%]">Station</th>
-              <th className="px-4 py-3 w-[12%]">Method</th>
-              <th className="px-4 py-3 w-[16%]">Planned</th>
-              <th className="px-4 py-3 w-[12%]">Arrival</th>
-              <th className="px-4 py-3 w-[8%]">QR</th>
-              <th className="px-4 py-3 w-[10%]">Status</th>
-              <th className="px-4 py-3 w-[4%] text-right">View</th>
+              <th className="px-4 py-3">Trip</th>
+              <th className="px-4 py-3">Station</th>
+              <th className="px-4 py-3">Method</th>
+              <th className="px-4 py-3">Planned</th>
+              <th className="px-4 py-3">Arrival</th>
+              <th className="px-4 py-3">QR</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">View</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-slate-200 text-sm">
             {loading ? (
               <tr>
                 <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">
@@ -197,40 +209,53 @@ export default function TripApprovalTable() {
                 const err = approveErrorById?.[t.id];
                 const isApproved = (t.approval_status || "").toLowerCase() === "approved";
 
+                const p = dateParts(t.planned_at);
+                const a = dateParts(t.arrival_at);
+
                 return (
                   <tr key={t.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      <div className="text-sm font-semibold text-slate-900 truncate">
-                        {t.trip_id}
-                      </div>
-                      <div className="text-[12px] text-slate-500 truncate">
+                      <div className="truncate font-semibold text-slate-900">{t.trip_id}</div>
+                      <div className="truncate text-[12px] text-slate-500">
                         Owner: <span className="font-medium">{t.owner_code}</span>
                       </div>
-                      {err && <div className="text-[12px] text-rose-700 mt-1">{err}</div>}
+                      {err && <div className="text-[12px] text-rose-700 mt-1 truncate">{err}</div>}
                     </td>
 
-                    <td className="px-4 py-3 text-sm text-slate-700 truncate">{t.near_station}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 truncate">{t.fishing_method}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{fmtDate(t.planned_at)}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{fmtDate(t.arrival_at)}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{t.qr_count ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <div className="truncate text-slate-700">{t.near_station}</div>
+                    </td>
 
-                    {/* ✅ status dropdown triggers PUT */}
+                    <td className="px-4 py-3">
+                      <div className="truncate text-slate-700">{t.fishing_method}</div>
+                    </td>
+
+                    {/* ✅ compact date: 2 lines */}
+                    <td className="px-4 py-3">
+                      <div className="text-slate-700 font-medium">{p.date}</div>
+                      {p.time && <div className="text-[12px] text-slate-500">{p.time}</div>}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="text-slate-700 font-medium">{a.date}</div>
+                      {a.time && <div className="text-[12px] text-slate-500">{a.time}</div>}
+                    </td>
+
+                    <td className="px-4 py-3 text-slate-700">{t.qr_count ?? "—"}</td>
+
+                    {/* ✅ status select constrained width */}
                     <td className="px-4 py-3">
                       <select
                         className={[
-                          "h-9 w-full rounded-xl border px-3 text-xs font-semibold",
+                          "h-9 rounded-xl border px-3 text-xs font-semibold",
+                          "w-[120px] max-w-full", // ✅ key fix
                           isApproved
                             ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                             : "border-amber-200 bg-amber-50 text-amber-900",
                         ].join(" ")}
                         value={(t.approval_status || "pending").toLowerCase()}
-                        onChange={(e) => {
-                          const next = e.target.value;
-                          if (next === "approved") tryApprove(t);
-                        }}
+                        onChange={(e) => e.target.value === "approved" && tryApprove(t)}
                         disabled={approving || isApproved}
-                        title="Change status"
                       >
                         <option value="pending">pending</option>
                         <option value="approved">approved</option>
@@ -284,8 +309,8 @@ export default function TripApprovalTable() {
                 <Box label="Owner Code" value={active.owner_code} />
                 <Box label="Station" value={active.near_station} />
                 <Box label="Method" value={active.fishing_method} />
-                <Box label="Planned At" value={fmtDate(active.planned_at)} />
-                <Box label="Arrival At" value={fmtDate(active.arrival_at)} />
+                <Box label="Planned At" value={new Date(active.planned_at).toLocaleString()} />
+                <Box label="Arrival At" value={new Date(active.arrival_at).toLocaleString()} />
                 <Box label="Approval" value={<StatusPill status={active.approval_status} />} />
               </div>
 
@@ -295,36 +320,6 @@ export default function TripApprovalTable() {
                 <Box label="QR Count" value={active.qr_count ?? "—"} />
                 <Box label="Total" value={money(active.total)} />
               </div>
-
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                <Box label="Created" value={fmtDate(active.created_at)} />
-                <Box label="Updated" value={fmtDate(active.updated_at)} />
-              </div>
-            </div>
-
-            <div className="border-t border-slate-200 px-4 py-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
-                Changing status to <span className="font-semibold">approved</span> calls:{" "}
-                <span className="font-semibold">PUT /api/trip/{active.id}/approve</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => tryApprove(active)}
-                disabled={(active.approval_status || "").toLowerCase() === "approved" || !!approvingById[active.id]}
-                className={[
-                  "rounded-xl px-4 py-2 text-sm font-semibold text-white",
-                  (active.approval_status || "").toLowerCase() === "approved"
-                    ? "bg-slate-400 cursor-not-allowed"
-                    : "bg-slate-900 hover:bg-slate-800",
-                ].join(" ")}
-              >
-                {(active.approval_status || "").toLowerCase() === "approved"
-                  ? "Approved"
-                  : approvingById[active.id]
-                  ? "Approving..."
-                  : "Approve Trip"}
-              </button>
             </div>
           </div>
         </div>
