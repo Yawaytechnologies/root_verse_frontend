@@ -11,32 +11,37 @@ import {
   FiMapPin,
   FiX,
   FiGrid,
+   FiHash,
   FiUser,
 } from "react-icons/fi";
 
 /** ✅ Wild Capture — Admin nav (with section headings) */
 const nav = [
-  { to: "/admin", label: "Dashboard", icon: FiHome },
+  { to: "/admin/wild-capture/dashboard", label: "Dashboard", icon: FiHome },
 
   // --- Operations
   { type: "section", label: "Wild Capture Ops" },
-   { to: "/admin/wild-capture/owner-register", label: "Owner Registration", icon: FiUser },
+   { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
+   { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
+   
 
-  { to: "/admin/wild-capture/vessels", label: "Vessels", icon: FiAnchor },
-  { to: "/admin/wild-capture/vesseltrips", label: "Trips", icon: FiAnchor },
-  { to: "/admin/wild-capture/catch-logs", label: "Catch Logs", icon: FiClipboard },
-  { to: "/admin/wild-capture/landing-qc", label: "Landing & QC", icon: FiClipboard },
-  { to: "/admin/wild-capture/crates", label: "Crates", icon: FiBox },
-  { to: "/admin/wild-capture/pcc-receipts", label: "PCC Receipts", icon: FiFileText },
-  { to: "/admin/wild-capture/dispatch-transport", label: "Dispatch & Transport", icon: FiTruck },
+
+  // { to: "/admin/wild-capture/vessels", label: "Vessels", icon: FiAnchor },
+  
+   { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
+  // { to: "/admin/wild-capture/catch-logs", label: "Catch Logs", icon: FiClipboard },
+  // { to: "/admin/wild-capture/landing-qc", label: "Landing & QC", icon: FiClipboard },
+  // { to: "/admin/wild-capture/crates", label: "Crates", icon: FiBox },
+  // { to: "/admin/wild-capture/pcc-receipts", label: "PCC Receipts", icon: FiFileText },
+  // { to: "/admin/wild-capture/dispatch-transport", label: "Dispatch & Transport", icon: FiTruck },
 
   // --- Master Data
-  { type: "section", label: "Master Data" },
+  // { type: "section", label: "Master Data" },
 
-  { to: "/admin/wild-capture/master/species-grades", label: "Species & Grades", icon: FiDatabase },
-  { to: "/admin/wild-capture/master/gear-methods", label: "Gear & Methods", icon: FiDatabase },
-  { to: "/admin/wild-capture/master/fao-zones", label: "FAO Zones", icon: FiMapPin },
-  { to: "/admin/wild-capture/master/ports-landing-centers", label: "Ports & Landing Centers", icon: FiMapPin },
+  // { to: "/admin/wild-capture/master/species-grades", label: "Species & Grades", icon: FiDatabase },
+  // { to: "/admin/wild-capture/master/gear-methods", label: "Gear & Methods", icon: FiDatabase },
+  // { to: "/admin/wild-capture/master/fao-zones", label: "FAO Zones", icon: FiMapPin },
+  // { to: "/admin/wild-capture/master/ports-landing-centers", label: "Ports & Landing Centers", icon: FiMapPin },
 ];
 
 export default function AdminSidebar({
