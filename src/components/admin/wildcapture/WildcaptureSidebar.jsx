@@ -19,10 +19,16 @@ import {
 const nav = [
   { to: "/admin/wild-capture/dashboard", label: "Dashboard", icon: FiHome },
 
-  // --- Operations
+  // --- Operations 
   { type: "section", label: "Wild Capture Ops" },
    { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
+   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
    { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
+   { to: "/admin/wild-capture/quality-checker", label: "Quality Checker", icon: FiDatabase },
+   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
+
+   
+
    
 
 

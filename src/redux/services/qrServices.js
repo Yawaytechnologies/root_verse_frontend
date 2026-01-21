@@ -1,6 +1,6 @@
 // src/store/qr/qrApi.js
 
-const API_BASE = "https://rootverse-backend.onrender.com";
+const API_BASE = "https://rootverse-backend-5qoo.onrender.com";
 
 // ✅ link only (as requested)
 export async function bulkReserveQrs({ type, count }) {
