@@ -1,7 +1,7 @@
 // src/redux/action/vesselActions.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchVesselsApi, createVesselApi, updateVesselApi } from "../services/vesselServices";
-import { fetchOwnersWildCaptureApi } from "../services/ownerLookupServices";
+import { fetchOwnersWildCaptureApi } from "../services/ownerlookupServices";
 
 export const fetchVessels = createAsyncThunk(
   "vessel/fetchAll",
