@@ -12,6 +12,12 @@ import VesselRegistryManagement from "./components/admin/wildcapture/VesselRegis
 import SpeciesManager from "./components/admin/wildcapture/SpeciesManager.jsx";
 import QualityChecker from "./components/admin/wildcapture/QualityChecker.jsx";
 
+// ===== Participant Registry admin side imports =====
+import ParticipantLayout from "./components/admin/participantregistry/ParticipantLayout.jsx"
+import ParticipantDashboard from "./components/admin/participantregistry/ParticipantDashboard.jsx";
+import QualityController from "./components/admin/participantregistry/QualityController.jsx";
+
+
 import Catch from "./components/admin/wildcapture/CatchLogs.jsx";
 import LandingQCPage from "./components/admin/wildcapture/LandingQC.jsx";
 import OwnerRegistration from "./components/admin/wildcapture/OwnerRegister.jsx";
@@ -97,6 +103,17 @@ export default function App() {
         <Route index element={<MariDashboard />} />
         <Route path="oceanfarm" element={<MariRegister />} />
       </Route>
+
+
+      {/* Participant-Registry admin app */}
+      <Route path="/admin/participant-registry" element={<ParticipantLayout />}>
+        <Route index element={<ParticipantDashboard />} />
+        <Route path="dashboard" element={<ParticipantDashboard/>} />
+        <Route path="quality-checker" element={<QualityController />} />
+      </Route>
+
+
+
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
       <Route path="/mariculture" element={<MaricultureLayout />}>
