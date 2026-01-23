@@ -393,7 +393,7 @@ export default function QualityChecker() {
         <div className="lg:col-span-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4">
             <div className="text-sm font-extrabold text-slate-900">View by Code</div>
-            <div className="mt-1 text-xs text-slate-500">GET /api/quality-checker/QC-000001</div>
+           
           </div>
 
           <div className="px-5 py-5">
