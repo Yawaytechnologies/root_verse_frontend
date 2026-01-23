@@ -315,7 +315,7 @@ export default function QualityChecker() {
               <FiUserCheck className="h-4 w-4" />
               Create Quality Checker
             </div>
-            <div className="mt-1 text-xs text-slate-500">POST /api/quality-checker/</div>
+           
           </div>
 
           <form onSubmit={submit} className="px-5 py-5 space-y-4">
