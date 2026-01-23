@@ -17,15 +17,13 @@ import {
 
 /** ✅ Wild Capture — Admin nav (with section headings) */
 const nav = [
-  { to: "/admin/wild-capture/dashboard", label: "Dashboard", icon: FiHome },
+  { to: "/admin/participant-registry/dashboard", label: "Dashboard", icon: FiHome },
 
   // --- Operations 
-  { type: "section", label: "Wild Capture Ops" },
-   { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
-   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
-   { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
+  { type: "section", label: "Participant Registry" },
    
-   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
+   { to: "/admin/participant-registry/quality-checker", label: "Quality Checker", icon: FiDatabase },
+   
 
    
 
@@ -34,7 +32,7 @@ const nav = [
 
   // { to: "/admin/wild-capture/vessels", label: "Vessels", icon: FiAnchor },
   
-   { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
+   
   // { to: "/admin/wild-capture/catch-logs", label: "Catch Logs", icon: FiClipboard },
   // { to: "/admin/wild-capture/landing-qc", label: "Landing & QC", icon: FiClipboard },
   // { to: "/admin/wild-capture/crates", label: "Crates", icon: FiBox },

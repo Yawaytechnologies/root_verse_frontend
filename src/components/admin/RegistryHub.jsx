@@ -41,7 +41,7 @@ const sectors = [
     tag: "Chain of Custody",
     title: "Participant Registry",
     desc: "PCCs, processors, transport & cold stores.",
-    to: "/admin/coc",
+    to: "/admin/participant-registry",
     img: cocImg,
     btn: "bg-amber-500 text-slate-900 hover:bg-amber-400 focus-visible:ring-amber-300",
     dot: "bg-amber-300",

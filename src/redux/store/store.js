@@ -6,6 +6,7 @@ import tripReducer from "../reducer/tripapprovalSlice";
 import speciesReducer from "../reducer/speciesSlice";
 import vesselReducer from "../reducer/vesselSlice";
 import qualityCheckerReducer from "../reducer/qualitycheckerSlice";
+import dashboardReducer from "../reducer/dashboardSlice"
 export const store = configureStore({
   reducer: {
     qr: qrReducer,
@@ -14,6 +15,7 @@ export const store = configureStore({
     species: speciesReducer,
     vessel: vesselReducer,
     qualityChecker: qualityCheckerReducer,
+    wilddashboard: dashboardReducer,
 
   },
 });
