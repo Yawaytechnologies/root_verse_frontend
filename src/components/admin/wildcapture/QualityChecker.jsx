@@ -21,7 +21,10 @@ import {
   fetchDistrictsThunk,
   updateQualityCheckerThunk,
 } from "../../../redux/action/qualitycheckerActions";
-import { clearSearch, clearUpdateError } from "../../../redux/reducer/qualitycheckerSlice";
+import {
+  clearSearch,
+  clearUpdateError,
+} from "../../../redux/reducer/qualitycheckerSlice";
 
 const EMPTY = {
   checker_name: "",
@@ -29,14 +32,14 @@ const EMPTY = {
   checker_phone: "",
   state_id: "",
   district_id: "",
-  is_active: true, // ✅ default active
+  is_active: true, // default active
 };
 
 function pickCode(row) {
   return row?.checker_code || row?.code || row?.qc_code || null;
 }
 
-function fmtBool(v) {
+function fmtStatus(v) {
   return v ? "Active" : "Inactive";
 }
 
@@ -118,8 +121,6 @@ export default function QualityChecker() {
     const selectedStateId = Number(form.state_id || 0);
     const arr = Array.isArray(districts) ? districts : [];
     if (!selectedStateId) return arr;
-
-    // district may have state_id or stateId
     return arr.filter((d) => Number(d?.state_id ?? d?.stateId) === selectedStateId);
   }, [districts, form.state_id]);
 
@@ -182,10 +183,6 @@ export default function QualityChecker() {
 
     if (code) {
       await dispatch(fetchQualityCheckerByCodeThunk({ code }));
-    } else {
-      // fallback: view row directly
-      // If backend doesn’t give code in list
-      // we’ll show table row details in modal (below)
     }
   };
 
@@ -333,7 +330,7 @@ export default function QualityChecker() {
                   value={form.state_id}
                   onChange={(v) => {
                     setField("state_id", v);
-                    setField("district_id", ""); // reset district
+                    setField("district_id", "");
                   }}
                   loading={statesLoading}
                   error={statesError}
@@ -362,7 +359,7 @@ export default function QualityChecker() {
                 <div className="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-700">
                   Status
                 </div>
-                
+                <div className="mt-1 text-xs text-slate-500">Default is Active</div>
               </div>
 
               <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
@@ -396,7 +393,7 @@ export default function QualityChecker() {
         <div className="lg:col-span-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4">
             <div className="text-sm font-extrabold text-slate-900">View by Code</div>
-            
+            <div className="mt-1 text-xs text-slate-500">GET /api/quality-checker/QC-000001</div>
           </div>
 
           <div className="px-5 py-5">
@@ -437,16 +434,15 @@ export default function QualityChecker() {
 
       {/* Table */}
       <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        {/* Desktop table */}
+        {/* Desktop table (STATE/DISTRICT REMOVED) */}
         <div className="hidden lg:block">
           <table className="w-full table-fixed">
             <colgroup>
-              <col className="w-[22%]" />
-              <col className="w-[22%]" />
-              <col className="w-[14%]" />
-              <col className="w-[22%]" />
-              <col className="w-[10%]" />
-              <col className="w-[10%]" />
+              <col className="w-[26%]" />
+              <col className="w-[28%]" />
+              <col className="w-[16%]" />
+              <col className="w-[12%]" />
+              <col className="w-[18%]" />
             </colgroup>
 
             <thead className="bg-slate-50">
@@ -454,8 +450,7 @@ export default function QualityChecker() {
                 <th className="px-5 py-4">Checker</th>
                 <th className="px-5 py-4">Email</th>
                 <th className="px-5 py-4">Phone</th>
-                <th className="px-5 py-4">State • District</th>
-                <th className="px-5 py-4">Active</th>
+                <th className="px-5 py-4">Status</th>
                 <th className="px-5 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -463,13 +458,13 @@ export default function QualityChecker() {
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
                     Loading...
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
                     No quality checkers found.
                   </td>
                 </tr>
@@ -502,13 +497,6 @@ export default function QualityChecker() {
                       </td>
 
                       <td className="px-5 py-4">
-                        <div className="text-sm font-semibold text-slate-800 truncate">
-                          {getStateNameById(statesMap, r.state_id)} •{" "}
-                          {getDistrictNameById(districtsMap, r.district_id)}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
                         <span
                           className={[
                             "inline-flex rounded-full border px-3 py-1 text-xs font-extrabold",
@@ -517,7 +505,7 @@ export default function QualityChecker() {
                               : "border-slate-200 bg-slate-50 text-slate-700",
                           ].join(" ")}
                         >
-                          {fmtBool(r.is_active)}
+                          {fmtStatus(r.is_active)}
                         </span>
                       </td>
 
@@ -560,12 +548,14 @@ export default function QualityChecker() {
           </table>
         </div>
 
-        {/* Mobile cards */}
+        {/* Mobile cards (STATE/DISTRICT REMOVED) */}
         <div className="lg:hidden divide-y divide-slate-200">
           {loading ? (
             <div className="px-4 py-10 text-center text-sm text-slate-500">Loading...</div>
           ) : rows.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-slate-500">No quality checkers found.</div>
+            <div className="px-4 py-10 text-center text-sm text-slate-500">
+              No quality checkers found.
+            </div>
           ) : (
             rows.map((r) => {
               const delLoading = !!deletingById?.[r.id];
@@ -591,11 +581,6 @@ export default function QualityChecker() {
                         {r.checker_phone || "—"}
                       </div>
 
-                      <div className="mt-2 text-xs font-semibold text-slate-700 truncate">
-                        {getStateNameById(statesMap, r.state_id)} •{" "}
-                        {getDistrictNameById(districtsMap, r.district_id)}
-                      </div>
-
                       <div className="mt-2">
                         <span
                           className={[
@@ -605,7 +590,7 @@ export default function QualityChecker() {
                               : "border-slate-200 bg-slate-50 text-slate-700",
                           ].join(" ")}
                         >
-                          {fmtBool(r.is_active)}
+                          {fmtStatus(r.is_active)}
                         </span>
                       </div>
                     </div>
@@ -654,7 +639,9 @@ export default function QualityChecker() {
             <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
               <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white px-5 py-4">
                 <div>
-                  <div className="text-base font-extrabold text-slate-900">Quality Checker Details</div>
+                  <div className="text-base font-extrabold text-slate-900">
+                    Quality Checker Details
+                  </div>
                   <div className="mt-1 text-xs text-slate-500">
                     {searching ? "Loading from code..." : "Full details view"}
                   </div>
@@ -662,10 +649,7 @@ export default function QualityChecker() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setOpenView(false);
-                    dispatch(clearSearch());
-                  }}
+                  onClick={closeView}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white hover:bg-slate-100"
                 >
                   <FiX className="h-4 w-4" />
@@ -702,7 +686,9 @@ export default function QualityChecker() {
             <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
               <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white px-5 py-4">
                 <div>
-                  <div className="text-base font-extrabold text-slate-900">Edit Quality Checker</div>
+                  <div className="text-base font-extrabold text-slate-900">
+                    Edit Quality Checker
+                  </div>
                   <div className="mt-1 text-xs text-slate-500">
                     PUT /api/quality-checker/{activeRow?.id}
                   </div>
@@ -746,9 +732,7 @@ export default function QualityChecker() {
                     <Select
                       label="State"
                       value={editForm.state_id}
-                      onChange={(v) => {
-                        setEditForm((p) => ({ ...p, state_id: v, district_id: "" }));
-                      }}
+                      onChange={(v) => setEditForm((p) => ({ ...p, state_id: v, district_id: "" }))}
                       loading={statesLoading}
                       error={statesError}
                       options={(Array.isArray(states) ? states : []).map((s) => ({
@@ -848,9 +832,7 @@ function Select({ label, value, onChange, options, loading, error }) {
         onChange={(e) => onChange(e.target.value)}
         className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-300"
       >
-        <option value="">
-          {loading ? "Loading..." : `Select ${label}…`}
-        </option>
+        <option value="">{loading ? "Loading..." : `Select ${label}…`}</option>
 
         {Array.isArray(options) &&
           options
@@ -881,13 +863,15 @@ function DetailsGrid({ data, statesMap, districtsMap }) {
   }
 
   const code = data?.checker_code || data?.code || data?.qc_code || "—";
+  const status = data?.is_active ? "Active" : "Inactive";
 
   return (
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-3">
         <Info label="Code" value={code} />
         <Info label="ID" value={data?.id ?? "—"} />
-        <Info label="Active" value={data?.is_active ? "true" : "false"} />
+        {/* ✅ CHANGED: Status instead of Active true/false */}
+        <Info label="Status" value={status} />
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
@@ -896,6 +880,7 @@ function DetailsGrid({ data, statesMap, districtsMap }) {
         <Info label="Phone" value={data?.checker_phone ?? "—"} />
       </div>
 
+      {/* ✅ State/District are now ONLY inside popup */}
       <div className="grid gap-3 md:grid-cols-3">
         <Info label="State" value={getStateNameById(statesMap, data?.state_id)} />
         <Info label="District" value={getDistrictNameById(districtsMap, data?.district_id)} />
@@ -915,7 +900,9 @@ function Info({ label, value }) {
       <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
-      <div className="mt-2 text-sm font-semibold text-slate-900 break-words">{value}</div>
+      <div className="mt-2 text-sm font-semibold text-slate-900 break-words">
+        {value}
+      </div>
     </div>
   );
 }
