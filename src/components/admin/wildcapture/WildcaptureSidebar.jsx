@@ -1,90 +1,51 @@
 // src/modules/admin/ui/AdminSidebar.jsx
 import { NavLink, Link } from "react-router-dom";
-import {
-  FiHome,
-  FiAnchor,
-  FiTruck,
-  FiClipboard,
-  FiBox,
-  FiFileText,
-  FiDatabase,
-  FiMapPin,
-  FiX,
-  FiGrid,
-   FiHash,
-  FiUser,
-} from "react-icons/fi";
+import { FiHome, FiAnchor, FiDatabase, FiX, FiGrid, FiHash, FiUser } from "react-icons/fi";
+import brandLogo from "../../../assets/icon.png";
 
-/** ✅ Wild Capture — Admin nav (with section headings) */
 const nav = [
   { to: "/admin/wild-capture/dashboard", label: "Dashboard", icon: FiHome },
-
-  // --- Operations 
   { type: "section", label: "Wild Capture Ops" },
-   { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
-   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
-   { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
-   
-   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
-
-   
-
-   
-
-
-  // { to: "/admin/wild-capture/vessels", label: "Vessels", icon: FiAnchor },
-  
-   { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
-  // { to: "/admin/wild-capture/catch-logs", label: "Catch Logs", icon: FiClipboard },
-  // { to: "/admin/wild-capture/landing-qc", label: "Landing & QC", icon: FiClipboard },
-  // { to: "/admin/wild-capture/crates", label: "Crates", icon: FiBox },
-  // { to: "/admin/wild-capture/pcc-receipts", label: "PCC Receipts", icon: FiFileText },
-  // { to: "/admin/wild-capture/dispatch-transport", label: "Dispatch & Transport", icon: FiTruck },
-
-  // --- Master Data
-  // { type: "section", label: "Master Data" },
-
-  // { to: "/admin/wild-capture/master/species-grades", label: "Species & Grades", icon: FiDatabase },
-  // { to: "/admin/wild-capture/master/gear-methods", label: "Gear & Methods", icon: FiDatabase },
-  // { to: "/admin/wild-capture/master/fao-zones", label: "FAO Zones", icon: FiMapPin },
-  // { to: "/admin/wild-capture/master/ports-landing-centers", label: "Ports & Landing Centers", icon: FiMapPin },
+  { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
+  { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
+  { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
+  { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
+  { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
 ];
 
-export default function AdminSidebar({
-  collapsed = false,
-  mobileOpen = false,
-  onCloseMobile = () => {},
-}) {
+export default function AdminSidebar({ collapsed = false, mobileOpen = false, onCloseMobile = () => {} }) {
   return (
     <>
-      {/* Mobile backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 lg:hidden transition-opacity duration-200 ${
-          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={[
+          "fixed inset-0 z-40 lg:hidden transition-opacity duration-200",
+          mobileOpen ? "opacity-100 pointer-events-auto bg-black/55" : "opacity-0 pointer-events-none",
+        ].join(" ")}
         onClick={onCloseMobile}
       />
 
-      {/* Desktop sidebar */}
       <aside
-        className={`
-          hidden lg:block lg:fixed lg:inset-y-0 lg:left-0 lg:z-40
-          bg-[#f3f4f6] border-r border-slate-300
-          transition-all duration-200
-          ${collapsed ? "w-20" : "w-72"}
-        `}
+        className={[
+          "hidden lg:block lg:fixed lg:inset-y-0 lg:left-0 lg:z-40",
+          "border-r border-white/10",
+          "bg-[#070f0c] relative",
+          "shadow-[0_24px_90px_rgba(0,0,0,0.50)]",
+          "transition-all duration-200",
+          collapsed ? "w-20" : "w-72",
+        ].join(" ")}
       >
         <SidebarInner collapsed={collapsed} />
       </aside>
 
-      {/* Mobile drawer */}
       <aside
-        className={`
-          lg:hidden fixed inset-y-0 left-0 z-50 w-72
-          bg-[#f3f4f6] border-r border-slate-300
-          transform transition-transform duration-200
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
+        className={[
+          "lg:hidden fixed inset-y-0 left-0 z-50 w-72",
+          "border-r border-white/10",
+          "bg-[#070f0c] relative",
+          "shadow-[0_24px_90px_rgba(0,0,0,0.55)]",
+          "transform transition-transform duration-200",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
       >
         <SidebarInner collapsed={false} isMobile onCloseMobile={onCloseMobile} />
       </aside>
@@ -94,19 +55,24 @@ export default function AdminSidebar({
 
 function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
   return (
-    <div className="flex h-full w-full flex-col">
-      {/* Brand */}
-      <div className="flex items-center justify-between border-b border-slate-300 px-5 py-4">
+    <div className="flex h-full w-full flex-col" style={{ "--rv-accent": "#22e5a6" }}>
+      {/* aura */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 -top-24 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,rgba(34,229,166,0.16),transparent_60%)]" />
+        <div className="absolute -right-40 top-20 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(34,229,166,0.10),transparent_60%)]" />
+      </div>
+
+      {/* brand */}
+      <div className="relative flex items-center justify-between border-b border-white/10 px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-[#111827] grid place-items-center text-white text-lg font-bold">
-            RV
+          <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+            <img src={brandLogo} alt="RootVerse" className="h-full w-full object-cover" draggable={false} />
           </div>
+
           {!collapsed && (
             <div>
-              <div className="text-lg font-extrabold tracking-tight text-slate-900">
-                RootVerse
-              </div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <div className="text-lg font-extrabold tracking-tight text-white">RootVerse</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">
                 Admin Panel
               </div>
             </div>
@@ -117,31 +83,30 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
           <button
             type="button"
             onClick={onCloseMobile}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-white/5 text-white hover:bg-white/10 ring-1 ring-white/10"
           >
             <FiX className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      {/* Nav */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      {/* nav */}
+      <div className="relative flex-1 px-4 py-4 overflow-y-auto rv-scrollbar">
         {!collapsed && (
-          <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
             Panel
           </div>
         )}
 
-        <nav className="space-y-3">
+        <nav className="space-y-2">
           {nav.map((item, idx) => {
-            // ✅ Section heading support
             if (item.type === "section") {
               return collapsed ? (
-                <div key={`sec-${idx}`} className="my-2 h-px w-full bg-slate-300/80" />
+                <div key={`sec-${idx}`} className="my-3 h-px w-full bg-white/10" />
               ) : (
                 <div
                   key={`sec-${idx}`}
-                  className="mt-4 mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                  className="mt-4 mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40"
                 >
                   {item.label}
                 </div>
@@ -154,37 +119,56 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
               <NavLink
                 key={item.to}
                 to={item.to}
+                title={collapsed ? item.label : undefined}
                 className={({ isActive }) =>
                   [
-                    "group flex items-center rounded-2xl py-2 text-sm font-medium transition-colors",
-                    collapsed ? "w-14 justify-center mx-auto" : "w-full px-4",
+                    "group relative flex items-center rounded-2xl overflow-hidden",
+                    collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 w-full px-4",
+                    "transition-all duration-200",
+
                     isActive
-                      ? "bg-[#374151] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)]"
-                      : "bg-[#4b5563] text-slate-50 shadow-[0_10px_22px_rgba(15,23,42,0.18)] hover:bg-[#374151]",
+                      ? "bg-white/6 ring-1 ring-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
+                      : "bg-transparent hover:bg-white/6 hover:ring-1 hover:ring-white/10 hover:shadow-[0_10px_24px_rgba(0,0,0,0.30)]",
+
+                    // aura (same)
+                    "before:content-[''] before:absolute before:inset-0 before:opacity-0 before:transition-opacity before:duration-200",
+                    "before:bg-[radial-gradient(520px_circle_at_85%_50%,rgba(34,229,166,0.16),transparent_55%)]",
+                    isActive ? "before:opacity-100" : "group-hover:before:opacity-100",
+
+                    // ✅ FIXED: vertical line position + size per collapsed state
+                    "after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2",
+                    collapsed ? "after:right-1 after:h-5" : "after:right-3 after:h-6",
+                    "after:w-[3px] after:rounded-full after:opacity-0 after:transition-opacity after:duration-200",
+                    "after:bg-[var(--rv-accent)] after:shadow-[0_0_12px_rgba(34,229,166,0.40)]",
+                    isActive ? "after:opacity-100" : "group-hover:after:opacity-100",
                   ].join(" ")
                 }
               >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-xl bg-black/10 text-slate-50">
-                    <Icon className="h-5 w-5" />
+                {/* icon: no glow */}
+                <Icon className="h-5 w-5 text-white/70 group-hover:text-[var(--rv-accent)]" />
+
+                {!collapsed && (
+                  <span className="ml-3 truncate text-[15px] font-semibold text-white/90 group-hover:text-white">
+                    {item.label}
                   </span>
-                  {!collapsed && <span className="truncate text-[15px]">{item.label}</span>}
-                </span>
+                )}
               </NavLink>
             );
           })}
         </nav>
       </div>
 
-      {/* Bottom "Back to Registry Hub" */}
-      <div className="border-t border-slate-300 px-4 py-3">
+      {/* bottom */}
+      <div className="relative border-t border-white/10 px-4 py-4">
         <Link
           to="/admin/hub"
+          title={collapsed ? "Back to Registry Hub" : undefined}
           className={[
-            "flex items-center justify-center rounded-xl text-xs font-semibold",
-            "bg-white text-slate-800 shadow-sm hover:bg-slate-100",
-            "transition-colors duration-150",
-            collapsed ? "h-10 w-10 mx-auto" : "h-10 w-full gap-2",
+            "flex items-center justify-center rounded-2xl font-semibold",
+            collapsed ? "h-12 w-12 mx-auto" : "h-12 w-full gap-2",
+            "bg-[var(--rv-accent)] text-[#04110c]",
+            "hover:brightness-110 transition-all",
+            "shadow-[0_10px_22px_rgba(34,229,166,0.22)]",
           ].join(" ")}
         >
           <FiGrid className="h-4 w-4" />

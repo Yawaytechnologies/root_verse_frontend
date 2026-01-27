@@ -20,7 +20,7 @@ import {
 } from "../../../redux/reducer/qrSlice";
 import { reserveBulkQrs } from "../../../redux/action/qrActions";
 
-const TYPES = [{ value: "VESSEL", label: "Vessel" }];
+const TYPES = [{ value: "FISH", label: "Fish" }];
 
 export default function AdminQrGenerator() {
   const dispatch = useDispatch();
@@ -29,7 +29,7 @@ export default function AdminQrGenerator() {
   const {
     loading = false,
     error = null,
-    type = "VESSEL",
+    type = "FISH",
     count = "",
     lastBatch = [],
     selectedCode = "",

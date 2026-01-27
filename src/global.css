@@ -81,3 +81,28 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;             /* Chrome, Safari, Opera */
 }
+@layer utilities {
+  /* SLF-style: thin green scrollbar (NOT bulged) */
+  .rv-scrollbar {
+    scrollbar-width: thin;          /* firefox */
+    scrollbar-color: #22e5a6 transparent;
+  }
+
+  .rv-scrollbar::-webkit-scrollbar {
+    width: 5px;                     /* ✅ thinner */
+  }
+
+  .rv-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .rv-scrollbar::-webkit-scrollbar-thumb {
+    background: #22e5a6;            /* ✅ green */
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(34, 229, 166, 0.35);  /* ✅ subtle glow */
+  }
+
+  .rv-scrollbar::-webkit-scrollbar-button {
+    display: none;                  /* ✅ remove arrows */
+  }
+}
