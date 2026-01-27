@@ -6,7 +6,7 @@ const initialState = {
   loading: false,
   error: null,
 
-  type: "VESSEL",
+  type: "FISH",
   count: "", // admin enters each time
 
   lastBatch: [],

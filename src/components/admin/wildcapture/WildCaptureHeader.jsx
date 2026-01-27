@@ -14,21 +14,26 @@ export default function AdminHeader({ onToggleSidebar }) {
 
   return (
     <header
-      className={`
-        sticky top-0 z-30
-        transition-colors duration-200
-        ${scrolled
-          ? "bg-[#f3f4f6] border-b border-slate-200 shadow-sm"
-          : "bg-transparent border-b border-transparent"}
-      `}
+      className={[
+        "sticky top-0 z-30",
+        "transition-all duration-200",
+        scrolled
+          ? "bg-white/70 backdrop-blur-xl border-b border-emerald-100 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+          : "bg-transparent border-b border-transparent",
+      ].join(" ")}
     >
-      {/* this row is the header content, no card/rounded container */}
       <div className="flex items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        {/* Collapse / sidebar toggle */}
+        {/* Toggle */}
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-black transition-colors"
+          className={[
+            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
+            "bg-[#0B1B16] text-white",
+            "ring-1 ring-emerald-300/30",
+            "hover:bg-[#0E241D] hover:ring-emerald-300/50",
+            "transition-all",
+          ].join(" ")}
         >
           <FiMenu className="h-5 w-5" />
         </button>
@@ -40,14 +45,15 @@ export default function AdminHeader({ onToggleSidebar }) {
             <input
               type="text"
               placeholder="Search..."
-              className="
-                block w-full rounded-full border
-                border-slate-200 bg-slate-50
-                py-2.5 pl-9 pr-3 text-sm
-                text-slate-800 placeholder:text-slate-400
-                focus:bg-white focus:border-slate-400
-                focus:outline-none focus:ring-2 focus:ring-slate-300
-              "
+              className={[
+                "block w-full rounded-full border",
+                "border-emerald-100 bg-white/75 backdrop-blur",
+                "py-2.5 pl-9 pr-3 text-sm",
+                "text-slate-800 placeholder:text-slate-400",
+                "shadow-[0_8px_20px_rgba(15,23,42,0.06)]",
+                "focus:bg-white focus:border-emerald-300",
+                "focus:outline-none focus:ring-2 focus:ring-emerald-200/70",
+              ].join(" ")}
             />
           </div>
         </div>
@@ -57,7 +63,6 @@ export default function AdminHeader({ onToggleSidebar }) {
           <RoundIconButton>
             <FiGlobe className="h-4 w-4" />
           </RoundIconButton>
-
           <RoundIconButton>
             <FiUser className="h-4 w-4" />
           </RoundIconButton>
@@ -71,14 +76,14 @@ function RoundIconButton({ children }) {
   return (
     <button
       type="button"
-      className="
-        flex h-10 w-10 items-center justify-center
-        rounded-full
-        bg-slate-100 text-slate-700
-        border border-slate-200
-        hover:bg-slate-200
-        transition-colors
-      "
+      className={[
+        "flex h-10 w-10 items-center justify-center rounded-full",
+        "bg-white/70 backdrop-blur",
+        "text-slate-700 border border-emerald-100",
+        "shadow-[0_8px_20px_rgba(15,23,42,0.06)]",
+        "hover:bg-white hover:border-emerald-200",
+        "transition-all",
+      ].join(" ")}
     >
       {children}
     </button>
