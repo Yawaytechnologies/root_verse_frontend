@@ -107,7 +107,7 @@ export default function WildCaptureDashboard() {
   const pendingOwners = ownersProgress?.pending ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6">
+    <div className="mx-auto w-full max-w-7xl px-0 sm:px-4 py-6">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/85 shadow-sm backdrop-blur">
         <div className="absolute inset-0 pointer-events-none">

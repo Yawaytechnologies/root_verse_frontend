@@ -245,11 +245,12 @@ export default function VesselRegistry() {
         <div className="hidden lg:block">
           <table className="w-full table-fixed">
             <colgroup>
-              <col className="w-[36%]" />
+              {/* FIX: give Actions more room; reduce Vessel a bit to keep total 100% */}
+              <col className="w-[34%]" />
               <col className="w-[22%]" />
               <col className="w-[22%]" />
               <col className="w-[12%]" />
-              <col className="w-[8%]" />
+              <col className="w-[10%]" />
             </colgroup>
 
             <thead className="bg-slate-50">
@@ -258,7 +259,9 @@ export default function VesselRegistry() {
                 <th className="px-5 py-4">Govt Reg No</th>
                 <th className="px-5 py-4">Home Port</th>
                 <th className="px-5 py-4">Method</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+
+                {/* FIX: avoid wrap + use slightly smaller padding on Actions */}
+                <th className="px-4 py-4 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
 
@@ -308,7 +311,8 @@ export default function VesselRegistry() {
                         </span>
                       </td>
 
-                      <td className="px-5 py-4">
+                      {/* FIX: match header padding so column doesn't get squeezed by px-5 */}
+                      <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
@@ -832,7 +836,8 @@ function OwnerCombobox({ value, onChange, owners = [], loading, onReload }) {
                         "truncate text-[11px] " + (active ? "text-white/70" : "text-slate-500")
                       }
                     >
-                      {[o.phone_no, o.district_name || o.address].filter(Boolean).join(" • ") || "—"}
+                      {[o.phone_no, o.district_name || o.address].filter(Boolean).join(" • ") ||
+                        "—"}
                     </div>
                   </button>
                 );

@@ -25,37 +25,39 @@ export default function AdminSidebar({ collapsed = false, mobileOpen = false, on
       />
 
       <aside
-        className={[
-          "hidden lg:block lg:fixed lg:inset-y-0 lg:left-0 lg:z-40",
-          "border-r border-white/10",
-          "bg-[#070f0c] relative",
-          "shadow-[0_24px_90px_rgba(0,0,0,0.50)]",
-          "transition-all duration-200",
-          collapsed ? "w-20" : "w-72",
-        ].join(" ")}
-      >
+  className={[
+    "hidden lg:block lg:fixed lg:inset-y-0 lg:left-0 lg:z-40",
+    "border-r border-white/10",
+    "bg-[#070f0c]", // ❌ remove 'relative'
+    "shadow-[0_24px_90px_rgba(0,0,0,0.50)]",
+    "transition-all duration-200",
+    collapsed ? "w-20" : "w-72",
+  ].join(" ")}
+>
         <SidebarInner collapsed={collapsed} />
       </aside>
 
       <aside
-        className={[
-          "lg:hidden fixed inset-y-0 left-0 z-50 w-72",
-          "border-r border-white/10",
-          "bg-[#070f0c] relative",
-          "shadow-[0_24px_90px_rgba(0,0,0,0.55)]",
-          "transform transition-transform duration-200",
-          mobileOpen ? "translate-x-0" : "-translate-x-full",
-        ].join(" ")}
-      >
-        <SidebarInner collapsed={false} isMobile onCloseMobile={onCloseMobile} />
-      </aside>
+  className={[
+    "lg:hidden fixed top-0 bottom-0 left-0 z-50 w-72", // fixed drawer
+    "border-r border-white/10",
+    "bg-[#070f0c]", // ❌ remove 'relative' here
+    "shadow-[0_24px_90px_rgba(0,0,0,0.55)]",
+    "transform transition-transform duration-200",
+    mobileOpen ? "translate-x-0" : "-translate-x-full",
+  ].join(" ")}
+>
+  <SidebarInner collapsed={false} isMobile onCloseMobile={onCloseMobile} />
+</aside>
+
+        
     </>
   );
 }
 
 function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
   return (
-    <div className="flex h-full w-full flex-col" style={{ "--rv-accent": "#22e5a6" }}>
+    <div className="relative flex h-full w-full flex-col" style={{ "--rv-accent": "#22e5a6" }}>
       {/* aura */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 -top-24 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,rgba(34,229,166,0.16),transparent_60%)]" />

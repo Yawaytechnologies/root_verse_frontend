@@ -72,15 +72,7 @@
   animation: hub-slide-up 2880ms ease-out both;
 }
 
-/* Hide scrollbar but keep scroll behavior */
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari, Opera */
-}
 @layer utilities {
   /* SLF-style: thin green scrollbar (NOT bulged) */
   .rv-scrollbar {
@@ -104,5 +96,27 @@
 
   .rv-scrollbar::-webkit-scrollbar-button {
     display: none;                  /* ✅ remove arrows */
+  }
+}
+/* Admin layout background: dots + soft mint gradient */
+.rv-layout-bg {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(2, 6, 23, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg,
+      rgba(236, 253, 245, 1) 0%,
+      rgba(255, 255, 255, 1) 45%,
+      rgba(209, 250, 229, 0.65) 100%
+    );
+  background-size: 18px 18px, 100% 100%;
+  background-position: 0 0, 0 0;
+
+  /* IMPORTANT: mobile must be scroll (fixed causes collapse/paint bugs) */
+  background-attachment: scroll, scroll;
+}
+
+/* Desktop can use fixed safely */
+@media (min-width: 1024px) {
+  .rv-layout-bg {
+    background-attachment: fixed, fixed;
   }
 }
