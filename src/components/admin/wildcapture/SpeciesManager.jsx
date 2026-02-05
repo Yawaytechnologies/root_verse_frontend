@@ -9,9 +9,13 @@ import {
   FiX,
   FiAlertTriangle,
   FiSave,
+  FiImage,
 } from "react-icons/fi";
 import { fetchSpecies, addSpecies, editSpecies, removeSpecies } from "../../../redux/action/speciesActions";
 import { clearSpeciesError } from "../../../redux/reducer/speciesSlice";
+
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://rootverse-backend-5qoo.onrender.com";
 
 function clean(v = "") {
   return String(v).trim();
@@ -19,6 +23,20 @@ function clean(v = "") {
 
 function upper(v = "") {
   return clean(v).toUpperCase();
+}
+
+/**
+ * ✅ render when backend returns:
+ * - full URL
+ * - relative path (/uploads/..)
+ * - supabase public URL
+ */
+function imgSrc(v) {
+  if (!v) return "";
+  const s = String(v).trim();
+  if (/^https?:\/\//i.test(s) || s.startsWith("blob:") || s.startsWith("data:")) return s;
+  if (s.startsWith("/")) return `${API_BASE}${s}`;
+  return s;
 }
 
 export default function SpeciesManager() {
@@ -34,9 +52,20 @@ export default function SpeciesManager() {
   const [fishName, setFishName] = useState("");
   const [fishCode, setFishCode] = useState("");
 
+  // ✅ upload File (sent as fish_type_image)
+  const [fishImageFile, setFishImageFile] = useState(null);
+  // ✅ preview (either blob for new file, or fish_type_url from backend)
+  const [fishImagePreview, setFishImagePreview] = useState("");
+
   useEffect(() => {
     dispatch(fetchSpecies());
   }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      if (fishImagePreview?.startsWith("blob:")) URL.revokeObjectURL(fishImagePreview);
+    };
+  }, [fishImagePreview]);
 
   const rows = useMemo(() => {
     const arr = Array.isArray(list) ? list : [];
@@ -53,6 +82,8 @@ export default function SpeciesManager() {
     dispatch(clearSpeciesError());
     setFishName("");
     setFishCode("");
+    setFishImageFile(null);
+    setFishImagePreview("");
     setOpenCreate(true);
   };
 
@@ -61,6 +92,12 @@ export default function SpeciesManager() {
     setActive(item);
     setFishName(item?.fish_name || "");
     setFishCode(item?.fish_code || "");
+
+    // ✅ backend stored url is fish_type_url
+    const existingUrl = item?.fish_type_url;
+    setFishImageFile(null);
+    setFishImagePreview(existingUrl ? imgSrc(existingUrl) : "");
+
     setOpenEdit(true);
   };
 
@@ -70,6 +107,27 @@ export default function SpeciesManager() {
     setActive(null);
     setFishName("");
     setFishCode("");
+
+    if (fishImagePreview?.startsWith("blob:")) URL.revokeObjectURL(fishImagePreview);
+    setFishImageFile(null);
+    setFishImagePreview("");
+  };
+
+  const onPickImage = (file) => {
+    if (!file) return;
+    if (!file.type?.startsWith("image/")) return alert("Please select an image file.");
+
+    if (fishImagePreview?.startsWith("blob:")) URL.revokeObjectURL(fishImagePreview);
+
+    setFishImageFile(file);
+    setFishImagePreview(URL.createObjectURL(file));
+  };
+
+  const removePickedImage = () => {
+    // this removes only the picked/previewed image in UI
+    if (fishImagePreview?.startsWith("blob:")) URL.revokeObjectURL(fishImagePreview);
+    setFishImageFile(null);
+    setFishImagePreview("");
   };
 
   const submitCreate = async () => {
@@ -79,11 +137,18 @@ export default function SpeciesManager() {
     if (!fish_name) return alert("Fish name required");
     if (!fish_code) return alert("Fish code required (Eg: TUN02)");
 
-    await dispatch(addSpecies({ fish_name, fish_code }));
+    // ✅ IMPORTANT:
+    // send file as fish_type_image (FormData happens in service)
+    await dispatch(
+      addSpecies({
+        fish_name,
+        fish_code,
+        fish_type_image: fishImageFile || null,
+      })
+    );
+
     await dispatch(fetchSpecies());
-    setOpenCreate(false);
-    setFishName("");
-    setFishCode("");
+    closeAll();
   };
 
   const submitEdit = async () => {
@@ -95,12 +160,13 @@ export default function SpeciesManager() {
     if (!fish_name) return alert("Fish name required");
     if (!fish_code) return alert("Fish code required (Eg: TUN02)");
 
-    await dispatch(editSpecies({ id: active.id, fish_name, fish_code }));
+    // ✅ only send file if user picked a new one
+    const payload = { id: active.id, fish_name, fish_code };
+    if (fishImageFile) payload.fish_type_image = fishImageFile;
+
+    await dispatch(editSpecies(payload));
     await dispatch(fetchSpecies());
-    setOpenEdit(false);
-    setActive(null);
-    setFishName("");
-    setFishCode("");
+    closeAll();
   };
 
   const doDelete = async (item) => {
@@ -112,7 +178,7 @@ export default function SpeciesManager() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      {/* Premium header */}
+      {/* header */}
       <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-amber-400/10 blur-3xl" />
@@ -129,7 +195,7 @@ export default function SpeciesManager() {
                 Species Registry
               </h1>
               <p className="mt-1 text-sm text-slate-500">
-                Maintain fish species (name + code) used in Wild Capture.
+                Maintain fish species (name + code + image) used in Wild Capture.
               </p>
             </div>
 
@@ -185,15 +251,17 @@ export default function SpeciesManager() {
         <div className="hidden md:block">
           <table className="w-full table-fixed">
             <colgroup>
+              <col className="w-[8%]" />
               <col className="w-[10%]" />
-              <col className="w-[22%]" />
-              <col className="w-[48%]" />
+              <col className="w-[18%]" />
+              <col className="w-[44%]" />
               <col className="w-[20%]" />
             </colgroup>
 
             <thead className="bg-slate-50">
               <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                 <th className="px-5 py-4">ID</th>
+                <th className="px-5 py-4">Image</th>
                 <th className="px-5 py-4">Code</th>
                 <th className="px-5 py-4">Species Name</th>
                 <th className="px-5 py-4 text-right">Actions</th>
@@ -203,13 +271,13 @@ export default function SpeciesManager() {
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
                     Loading...
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
                     No species found.
                   </td>
                 </tr>
@@ -218,9 +286,25 @@ export default function SpeciesManager() {
                   const updating = !!updatingById[x.id];
                   const deleting = !!deletingById[x.id];
 
+                  // ✅ backend saved url
+                  const raw = x?.fish_type_url;
+                  const src = raw ? imgSrc(raw) : "";
+
                   return (
                     <tr key={x.id} className="hover:bg-slate-50">
                       <td className="px-5 py-4 text-sm font-semibold text-slate-700">{x.id}</td>
+
+                      <td className="px-5 py-4">
+                        <div className="h-11 w-11 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                          {src ? (
+                            <img src={src} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full grid place-items-center text-slate-400">
+                              <FiImage />
+                            </div>
+                          )}
+                        </div>
+                      </td>
 
                       <td className="px-5 py-4">
                         <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-extrabold tracking-wide text-amber-900">
@@ -229,9 +313,7 @@ export default function SpeciesManager() {
                       </td>
 
                       <td className="px-5 py-4">
-                        <div className="text-sm font-extrabold text-slate-900 truncate">
-                          {x.fish_name}
-                        </div>
+                        <div className="text-sm font-extrabold text-slate-900 truncate">{x.fish_name}</div>
                         <div className="text-[11px] text-slate-500">
                           Registry entry used in grades, landings & sales.
                         </div>
@@ -278,21 +360,36 @@ export default function SpeciesManager() {
               const updating = !!updatingById[x.id];
               const deleting = !!deletingById[x.id];
 
+              const raw = x?.fish_type_url;
+              const src = raw ? imgSrc(raw) : "";
+
               return (
                 <div key={x.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        ID {x.id}
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                          {src ? (
+                            <img src={src} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full grid place-items-center text-slate-400">
+                              <FiImage />
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            ID {x.id}
+                          </div>
+
+                          <div className="mt-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-extrabold tracking-wide text-amber-900">
+                            {x.fish_code || "—"}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="mt-2 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-extrabold tracking-wide text-amber-900">
-                        {x.fish_code || "—"}
-                      </div>
-
-                      <div className="mt-2 truncate text-base font-extrabold text-slate-900">
-                        {x.fish_name}
-                      </div>
+                      <div className="mt-2 truncate text-base font-extrabold text-slate-900">{x.fish_name}</div>
                     </div>
 
                     <div className="flex gap-2">
@@ -334,6 +431,14 @@ export default function SpeciesManager() {
             <Field label="Fish Name" value={fishName} onChange={setFishName} placeholder="Eg: Tuna" />
             <Field label="Fish Code" value={fishCode} onChange={setFishCode} placeholder="Eg: TUN02" upper />
 
+            <ImageField
+              label="Fish Image"
+              preview={fishImagePreview}
+              onPick={onPickImage}
+              onRemove={removePickedImage}
+              hint="Uploads as fish_type_image. Backend saves as fish_type_url."
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -366,6 +471,14 @@ export default function SpeciesManager() {
             <Field label="Fish Name" value={fishName} onChange={setFishName} placeholder="Eg: Shark" />
             <Field label="Fish Code" value={fishCode} onChange={setFishCode} placeholder="Eg: TUN02" upper />
 
+            <ImageField
+              label="Fish Image"
+              preview={fishImagePreview}
+              onPick={onPickImage}
+              onRemove={removePickedImage}
+              hint="Pick a new file only if you want to replace fish_type_url."
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -380,9 +493,7 @@ export default function SpeciesManager() {
                 disabled={!!updatingById[active.id]}
                 className={[
                   "inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white",
-                  updatingById[active.id]
-                    ? "bg-slate-400 cursor-not-allowed"
-                    : "bg-slate-900 hover:bg-black",
+                  updatingById[active.id] ? "bg-slate-400 cursor-not-allowed" : "bg-slate-900 hover:bg-black",
                 ].join(" ")}
               >
                 <FiSave className="h-4 w-4" />
@@ -423,9 +534,7 @@ function Modal({ title, subtitle, onClose, children }) {
 function Field({ label, value, onChange, placeholder, upper = false }) {
   return (
     <div>
-      <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
-        {label}
-      </label>
+      <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(upper ? e.target.value.toUpperCase() : e.target.value)}
@@ -434,6 +543,47 @@ function Field({ label, value, onChange, placeholder, upper = false }) {
       />
       <div className="mt-1 text-[11px] text-slate-500">
         Use stable codes. Example format: <span className="font-semibold">TUN02</span>
+      </div>
+    </div>
+  );
+}
+
+function ImageField({ label, preview, onPick, onRemove, hint }) {
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">{label}</label>
+
+      <div className="mt-2 flex items-center gap-3">
+        <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          {preview ? (
+            <img src={preview} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full grid place-items-center text-slate-400">
+              <FiImage />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onPick(e.target.files?.[0])}
+            className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-black"
+          />
+
+          <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
+
+          {preview && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-slate-50"
+            >
+              <FiX className="h-3.5 w-3.5" /> Remove
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

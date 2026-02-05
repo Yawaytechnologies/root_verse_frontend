@@ -1,10 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  fetchSpecies,
-  addSpecies,
-  editSpecies,
-  removeSpecies,
-} from "../action/speciesActions";
+import { fetchSpecies, addSpecies, editSpecies, removeSpecies } from "../action/speciesActions";
 
 const initialState = {
   loading: false,
@@ -17,9 +12,10 @@ const initialState = {
 };
 
 function normalizeRow(payload) {
-  // API can return direct object OR {data:{...}} etc.
+  // supports: row OR {data: row} OR {success:true,data:row}
   const row = payload?.data ?? payload;
-  return row && typeof row === "object" ? row : null;
+  if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+  return row;
 }
 
 const speciesSlice = createSlice({
@@ -54,11 +50,16 @@ const speciesSlice = createSlice({
       .addCase(addSpecies.fulfilled, (s, a) => {
         s.creating = false;
 
+        // ✅ created should contain fish_type_url (saved by backend)
         const created = normalizeRow(a.payload);
         if (created?.id != null) {
-          // prevent duplicates if API returns existing row
-          const exists = s.list.some((x) => x.id === created.id);
-          s.list = exists ? s.list : [created, ...s.list];
+          const idx = s.list.findIndex((x) => x.id === created.id);
+          if (idx === -1) {
+            s.list = [created, ...s.list];
+          } else {
+            // replace if already exists
+            s.list[idx] = { ...s.list[idx], ...created };
+          }
         }
       })
       .addCase(addSpecies.rejected, (s, a) => {
@@ -79,11 +80,12 @@ const speciesSlice = createSlice({
         const idx = s.list.findIndex((x) => x.id === id);
         if (idx === -1) return;
 
+        // server can return updated row containing fish_type_url
         const serverData = normalizeRow(a.payload?.data) || {};
-        // Always ensure we update name + code from thunk args (most reliable)
+
         s.list[idx] = {
           ...s.list[idx],
-          ...serverData,
+          ...serverData, // ✅ keep fish_type_url here
           fish_name: a.payload.fish_name,
           fish_code: a.payload.fish_code,
         };
