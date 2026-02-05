@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.17",
+    "axios": "^1.13.4",
     "jspdf": "^4.0.0",
     "lucide-react": "^0.556.0",
     "qrcode": "^1.5.4",
