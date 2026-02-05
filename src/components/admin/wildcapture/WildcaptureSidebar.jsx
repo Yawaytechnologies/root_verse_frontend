@@ -1,14 +1,22 @@
 // src/modules/admin/ui/AdminSidebar.jsx
 import { NavLink, Link } from "react-router-dom";
-import { FiHome, FiAnchor, FiDatabase, FiX, FiGrid, FiHash, FiUser } from "react-icons/fi";
+import { FiHome, FiAnchor, FiDatabase, FiX, FiGrid, FiHash, FiUser, FiCheckCircle } from "react-icons/fi";
 import brandLogo from "../../../assets/icon.png";
+import { LuLogs } from "react-icons/lu";
+import { FcInspection } from "react-icons/fc";
+import { IoLocationOutline } from "react-icons/io5";
+import { IoBoatOutline } from "react-icons/io5";
+
 
 const nav = [
   { to: "/admin/wild-capture/dashboard", label: "Dashboard", icon: FiHome },
   { type: "section", label: "Wild Capture Ops" },
   { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
-  { to: "/admin/wild-capture/trip-approval", label: "Trip Approval", icon: FiUser },
+  { to: "/admin/wild-capture/trip-approval", label: "Trip Management", icon: IoBoatOutline },
+  
+  // { to: "/admin/wild-capture/quality-inspection-logs", label: "Quality Inspection Logs", icon: FcInspection },
+  { to: "/admin/wild-capture/location-creation", label: "Location Management", icon: IoLocationOutline },
   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
   { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
 ];

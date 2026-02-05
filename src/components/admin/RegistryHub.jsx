@@ -51,7 +51,7 @@ const sectors = [
 export default function RegistryHub() {
   return (
     <div className="h-screen w-screen bg-slate-950">
-      <div className="grid h-full w-full grid-cols-1 md:grid-cols-4">
+      <div className="grid w-full grid-cols-1 md:h-full md:grid-cols-4">
         {sectors.map((s, i) => {
           // 1st & 3rd => top→down, 2nd & 4th => bottom→up
           const slideClass = i === 0 || i === 2 ? "hub-slide-down" : "hub-slide-up";
@@ -60,7 +60,7 @@ export default function RegistryHub() {
             <Link
               key={s.key}
               to={s.to}
-              className={`group relative isolate h-full w-full overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
+              className={`group relative isolate h-72 md:h-full w-full overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
                 i !== sectors.length - 1 ? "md:border-r md:border-white/5" : ""
               } ${slideClass}`}
               style={{ animationDelay: `${i * 120}ms` }}
