@@ -32,6 +32,8 @@ export const updateOwnerVerification = createAsyncThunk(
       if (payload.aadhar) fd.append("aadhar", payload.aadhar);
       if (payload.pan) fd.append("pan", payload.pan);
       if (payload.govt) fd.append("govt", payload.govt);
+      // allow updating verification status (new design: simple Pending/Verified)
+      if (payload.verification_status) fd.append("verification_status", payload.verification_status);
 
       const data = await verifyOwnerKyc({ ownerId, formData: fd });
       return { ownerId, data };

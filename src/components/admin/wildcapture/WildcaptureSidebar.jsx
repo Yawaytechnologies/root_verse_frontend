@@ -6,6 +6,7 @@ import { LuLogs } from "react-icons/lu";
 import { FcInspection } from "react-icons/fc";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoBoatOutline } from "react-icons/io5";
+import { GiFishingHook } from "react-icons/gi";
 
 
 const nav = [
@@ -18,6 +19,7 @@ const nav = [
   // { to: "/admin/wild-capture/quality-inspection-logs", label: "Quality Inspection Logs", icon: FcInspection },
   { to: "/admin/wild-capture/location-creation", label: "Location Management", icon: IoLocationOutline },
   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
+  { to: "/admin/wild-capture/fishing-methods", label: "Fishing Methods", icon: GiFishingHook },
   { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
 ];
 
