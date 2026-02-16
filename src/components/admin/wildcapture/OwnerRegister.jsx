@@ -255,66 +255,7 @@ export default function OwnerRegistration({
         </div>
       </div>
 
-      {/* KYC / Compliance */}
-      <div className="mt-6">
-        <SectionTitle icon={FiShield} title="KYC & Compliance" subtitle="Store responsibly (mask/encrypt in backend). Needed for audits & payouts." />
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <SelectField
-            label="KYC type"
-            name="kycType"
-            value={form?.kycType}
-            onChange={handleInputChange}
-            options={[
-              { value: "AADHAAR", label: "Aadhaar" },
-              { value: "PAN", label: "PAN" },
-              { value: "VOTER_ID", label: "Voter ID" },
-              { value: "DL", label: "Driving License" },
-              { value: "PASSPORT", label: "Passport" },
-              { value: "OTHER", label: "Other" },
-            ]}
-          />
-
-          <TextField
-            label="KYC number"
-            name="kycNumber"
-            value={form?.kycNumber}
-            onChange={handleInputChange}
-            placeholder="Masked storage recommended"
-          />
-
-          <TextField
-            label="PAN number"
-            name="panNumber"
-            value={form?.panNumber}
-            onChange={handleInputChange}
-            placeholder="Optional (but useful)"
-          />
-
-          <TextField
-            label="GSTIN"
-            name="gstin"
-            value={form?.gstin}
-            onChange={handleInputChange}
-            placeholder="Optional (for company/registered entities)"
-          />
-
-          <TextField
-            label="Fisher ID / Society ID"
-            name="fisherId"
-            value={form?.fisherId}
-            onChange={handleInputChange}
-            placeholder="Optional"
-          />
-
-          <TextField
-            label="Cooperative / Society name"
-            name="cooperativeName"
-            value={form?.cooperativeName}
-            onChange={handleInputChange}
-            placeholder="Optional"
-          />
-        </div>
-      </div>
+      {/* KYC removed per new design (verification handled via owners table) */}
 
       {/* Bank Details */}
       <div className="mt-6">

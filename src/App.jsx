@@ -13,6 +13,7 @@ import SpeciesManager from './components/admin/wildcapture/SpeciesManager.jsx';
 import QualityChecker from './components/admin/wildcapture/QualityChecker.jsx';
 import TripApprovalDetails from './components/admin/wildcapture/TripApprovalDetails.jsx';
 import LocationCreation from './components/admin/wildcapture/LocationCreation.jsx';
+import FishingMethodsPage from './components/admin/wildcapture/FishingMethods.jsx';
 //Total Traceability user module imports
 import TotalTraceability from './pages/consumertraceability/TotalTraceability.jsx';
 // ===== Participant Registry admin side imports =====
@@ -93,7 +94,9 @@ export default function App() {
         <Route path='qr-generator' element={<QrGeneratorPage />} />
         <Route path='vessel-owner' element={<VesselOwner />} />
         <Route path='trip-approval' element={<TripApproval />} />
+        <Route path='fishing-methods' element={<FishingMethodsPage />} />
          <Route path='location-creation' element={<LocationCreation />} />
+        <Route path="trip-approval/:id" element={<TripApprovalDetails />} />
         <Route path="trip-approval/:id" element={<TripApprovalDetails />} />
         <Route path='species' element={<SpeciesManager />} />
       </Route>
