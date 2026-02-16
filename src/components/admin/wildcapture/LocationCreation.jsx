@@ -563,20 +563,20 @@ export default function LocationCreation() {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-slate-100">
-                    <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                      <th className="px-4 py-3">Code</th>
+                    <tr className="text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                      <th className="px-4 py-3">Port Code</th>
                       <th className="px-4 py-3">State</th>
                       <th className="px-4 py-3">District</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {paginatedLocations.map((loc) => (
                       <tr key={loc.id} className="hover:bg-slate-50 transition" title={loc.name}>
-                        <td className="px-4 py-3 text-sm font-semibold text-slate-900">{loc.location_code || "—"}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{getStateName(loc.state_id)}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{getDistrictName(loc.district_id)}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 text-sm font-semibold text-slate-900 text-center">{loc.location_code || "—"}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 text-center">{getStateName(loc.state_id)}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 text-center">{getDistrictName(loc.district_id)}</td>
+                        <td className="px-4 py-3 text-center">
                           <div className="flex justify-end gap-1">
                             <button
                               type="button"
@@ -612,7 +612,7 @@ export default function LocationCreation() {
               {/* Mobile Card View */}
               <div className="md:hidden space-y-3">
                 {paginatedLocations.map((loc) => (
-                  <div key={loc.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition" title={loc.name}>
+                  <div key={loc.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition text-center" title={loc.name}>
                     <div className="space-y-3">
                       <div>
                         <p className="text-xs font-semibold uppercase text-slate-500">Port Code</p>
@@ -621,11 +621,11 @@ export default function LocationCreation() {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 py-2 border-t border-b border-slate-200">
-                        <div>
+                        <div className="text-center">
                           <p className="text-xs font-semibold uppercase text-slate-500">State</p>
                           <p className="text-sm text-slate-900">{getStateName(loc.state_id)}</p>
                         </div>
-                        <div>
+                        <div className="text-center">
                           <p className="text-xs font-semibold uppercase text-slate-500">District</p>
                           <p className="text-sm text-slate-900">{getDistrictName(loc.district_id)}</p>
                         </div>
