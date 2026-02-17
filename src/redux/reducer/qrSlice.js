@@ -6,8 +6,11 @@ const initialState = {
   loading: false,
   error: null,
 
-  type: "FISH",
-  count: "", // admin enters each time
+  type: "WC",     // ✅ was "FISH"
+  count: "",
+
+  locationId: "",
+  methodId: "",
 
   lastBatch: [],
   lastBatchMeta: null,
@@ -24,6 +27,15 @@ const qrSlice = createSlice({
     setCount(state, action) {
       state.count = action.payload; // keep string
     },
+
+    // ✅ NEW
+    setLocationId(state, action) {
+      state.locationId = action.payload; // keep string
+    },
+    setMethodId(state, action) {
+      state.methodId = action.payload; // keep string
+    },
+
     setSelectedCode(state, action) {
       state.selectedCode = action.payload;
     },
@@ -43,6 +55,11 @@ const qrSlice = createSlice({
         state.lastBatchMeta = {
           success: action.payload.success,
           count: action.payload.count,
+
+          // ✅ store what was used for the batch (handy for PDF/header/UI)
+          locationId: state.locationId,
+          methodId: state.methodId,
+          type: state.type,
         };
 
         state.lastBatch = action.payload.qrs || [];
@@ -58,7 +75,13 @@ const qrSlice = createSlice({
   },
 });
 
-export const { setType, setCount, setSelectedCode, clearError } =
-  qrSlice.actions;
+export const {
+  setType,
+  setCount,
+  setLocationId,
+  setMethodId,
+  setSelectedCode,
+  clearError,
+} = qrSlice.actions;
 
 export default qrSlice.reducer;
