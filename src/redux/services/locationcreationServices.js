@@ -1,18 +1,28 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_BASE_URL || "https://rootverse-backend-5qoo.onrender.com",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://rootverse-backend-5qoo.onrender.com",
   headers: { "Content-Type": "application/json" },
 });
 
-// IMPORTANT: backend may return array OR {data:[]} OR {districts:[]}
-// we normalize in slice, not here.
+// NOTE: normalize in slice, not here.
 
 export const geoService = {
+  // COUNTRIES  ✅ (your backend: /api/country)
+  getCountries: async () => {
+    const res = await api.get("/api/country");
+    return res.data;
+  },
+  createCountry: async (payload) => {
+    const res = await api.post("/api/country", payload);
+    return res.data;
+  },
+
   // STATES
-  getStates: async () => {
-    const res = await api.get("/api/states");
+  getStates: async ({ countryId } = {}) => {
+    const res = await api.get("/api/states", {
+      params: countryId ? { country_id: countryId } : {},
+    });
     return res.data;
   },
   createState: async (payload) => {
@@ -21,7 +31,6 @@ export const geoService = {
   },
 
   // DISTRICTS
-  // Backend supports: /api/districts?state_id=4  (as seen in your Network tab)
   getDistricts: async ({ stateId } = {}) => {
     const res = await api.get("/api/districts", {
       params: stateId ? { state_id: stateId } : {},
