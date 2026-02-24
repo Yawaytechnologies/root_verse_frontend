@@ -7,6 +7,9 @@ import { FcInspection } from "react-icons/fc";
 import { IoLocationOutline } from "react-icons/io5";
 import { IoBoatOutline } from "react-icons/io5";
 import { GiFishingHook } from "react-icons/gi";
+import { MdQrCodeScanner } from "react-icons/md";
+import { MdOutlineQrCodeScanner } from "react-icons/md";
+
 
 
 const nav = [
@@ -14,13 +17,14 @@ const nav = [
   { type: "section", label: "Wild Capture Ops" },
   { to: "/admin/wild-capture/vessel-owner", label: "Vessel Owner", icon: FiUser },
   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
-  { to: "/admin/wild-capture/trip-approval", label: "Trip Management", icon: IoBoatOutline },
+  { to: "/admin/wild-capture/trip-approval", label: "Fishing Trips", icon: IoBoatOutline },
   
   // { to: "/admin/wild-capture/quality-inspection-logs", label: "Quality Inspection Logs", icon: FcInspection },
-  { to: "/admin/wild-capture/location-creation", label: "Location Management", icon: IoLocationOutline },
+  { to: "/admin/wild-capture/location-creation", label: "Fishing Port", icon: IoLocationOutline },
   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
   { to: "/admin/wild-capture/fishing-methods", label: "Fishing Methods", icon: GiFishingHook },
-  { to: "/admin/wild-capture/qr-generator", label: "QR Generator", icon: FiHash },
+  { to: "/admin/wild-capture/qr-generator", label: "Fish QR Generator", icon: MdOutlineQrCodeScanner },
+  { to: "/admin/wild-capture/crate-wild", label: "Crate QR Generator", icon: MdQrCodeScanner },
 ];
 
 export default function AdminSidebar({ collapsed = false, mobileOpen = false, onCloseMobile = () => {} }) {

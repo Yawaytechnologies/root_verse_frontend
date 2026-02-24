@@ -4,15 +4,17 @@ import { geoService } from "../services/locationcreationServices";
 const errMsg = (e) =>
   e?.response?.data?.message ||
   e?.response?.data?.error ||
+  e?.response?.data?.detail ||
   e?.message ||
   "Request failed";
 
-// Normalize ANY backend response into an array
+// Normalize ANY backend response into an array (only for list endpoints)
 const toArray = (payload) => {
   if (Array.isArray(payload)) return payload;
 
   const wrapped =
     payload?.data ||
+    payload?.countries ||
     payload?.states ||
     payload?.districts ||
     payload?.locations ||
@@ -21,27 +23,65 @@ const toArray = (payload) => {
 
   if (Array.isArray(wrapped)) return wrapped;
 
-  if (payload && typeof payload === "object") return [payload];
+  // DON'T wrap random objects for list fetch calls unless it looks like a row
+  if (
+    payload &&
+    typeof payload === "object" &&
+    (payload.id != null || payload.name || payload.code)
+  ) {
+    return [payload];
+  }
 
   return [];
 };
 
-export const fetchStates = createAsyncThunk("location/fetchStates", async (_, thunkAPI) => {
-  try {
-    return await geoService.getStates();
-  } catch (e) {
-    return thunkAPI.rejectWithValue(errMsg(e));
+// ----------- COUNTRY -----------
+export const fetchCountries = createAsyncThunk(
+  "location/fetchCountries",
+  async (_, thunkAPI) => {
+    try {
+      return await geoService.getCountries();
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
   }
-});
+);
 
-export const createState = createAsyncThunk("location/createState", async (payload, thunkAPI) => {
-  try {
-    return await geoService.createState(payload);
-  } catch (e) {
-    return thunkAPI.rejectWithValue(errMsg(e));
+export const createCountry = createAsyncThunk(
+  "location/createCountry",
+  async (payload, thunkAPI) => {
+    try {
+      return await geoService.createCountry(payload);
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
   }
-});
+);
 
+// ----------- STATE -----------
+export const fetchStates = createAsyncThunk(
+  "location/fetchStates",
+  async ({ countryId } = {}, thunkAPI) => {
+    try {
+      return await geoService.getStates({ countryId });
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
+  }
+);
+
+export const createState = createAsyncThunk(
+  "location/createState",
+  async (payload, thunkAPI) => {
+    try {
+      return await geoService.createState(payload);
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
+  }
+);
+
+// ----------- DISTRICT -----------
 export const fetchDistricts = createAsyncThunk(
   "location/fetchDistricts",
   async ({ stateId } = {}, thunkAPI) => {
@@ -53,14 +93,18 @@ export const fetchDistricts = createAsyncThunk(
   }
 );
 
-export const createDistrict = createAsyncThunk("location/createDistrict", async (payload, thunkAPI) => {
-  try {
-    return await geoService.createDistrict(payload);
-  } catch (e) {
-    return thunkAPI.rejectWithValue(errMsg(e));
+export const createDistrict = createAsyncThunk(
+  "location/createDistrict",
+  async (payload, thunkAPI) => {
+    try {
+      return await geoService.createDistrict(payload);
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
   }
-});
+);
 
+// ----------- LOCATION (PORT) -----------
 export const fetchLocations = createAsyncThunk(
   "location/fetchLocations",
   async ({ stateId, districtId } = {}, thunkAPI) => {
@@ -72,15 +116,19 @@ export const fetchLocations = createAsyncThunk(
   }
 );
 
-export const createLocation = createAsyncThunk("location/createLocation", async (payload, thunkAPI) => {
-  try {
-    return await geoService.createLocation(payload);
-  } catch (e) {
-    return thunkAPI.rejectWithValue(errMsg(e));
+export const createLocation = createAsyncThunk(
+  "location/createLocation",
+  async (payload, thunkAPI) => {
+    try {
+      return await geoService.createLocation(payload);
+    } catch (e) {
+      return thunkAPI.rejectWithValue(errMsg(e));
+    }
   }
-});
+);
 
 const initialState = {
+  countries: [],
   states: [],
   districts: [],
   locations: [],
@@ -113,7 +161,22 @@ const locationSlice = createSlice({
     };
 
     builder
-      // STATES
+      // ================== COUNTRIES ==================
+      .addCase(fetchCountries.pending, pending)
+      .addCase(fetchCountries.fulfilled, (state, action) => {
+        state.loading = false;
+        state.countries = toArray(action.payload);
+      })
+      .addCase(fetchCountries.rejected, rejected)
+
+      .addCase(createCountry.pending, pending)
+      .addCase(createCountry.fulfilled, (state) => {
+        state.loading = false;
+        state.lastSuccess = "Country created";
+      })
+      .addCase(createCountry.rejected, rejected)
+
+      // ================== STATES ==================
       .addCase(fetchStates.pending, pending)
       .addCase(fetchStates.fulfilled, (state, action) => {
         state.loading = false;
@@ -128,14 +191,20 @@ const locationSlice = createSlice({
       })
       .addCase(createState.rejected, rejected)
 
-      // DISTRICTS
-      .addCase(fetchDistricts.pending, (state) => {
-        pending(state);
-        state.districts = []; // wipe old districts so dropdown doesn't show wrong data
-      })
+      // ================== DISTRICTS ==================
+      .addCase(fetchDistricts.pending, pending)
       .addCase(fetchDistricts.fulfilled, (state, action) => {
         state.loading = false;
-        state.districts = toArray(action.payload);
+
+        // ✅ IMPORTANT FIX:
+        // Merge districts by id so multiple fetchDistricts calls (for each state) won't overwrite.
+        const incoming = toArray(action.payload);
+
+        const map = new Map(state.districts.map((d) => [d.id, d]));
+        for (const d of incoming) {
+          if (d?.id != null) map.set(d.id, d);
+        }
+        state.districts = Array.from(map.values());
       })
       .addCase(fetchDistricts.rejected, rejected)
 
@@ -146,7 +215,7 @@ const locationSlice = createSlice({
       })
       .addCase(createDistrict.rejected, rejected)
 
-      // LOCATIONS
+      // ================== LOCATIONS ==================
       .addCase(fetchLocations.pending, pending)
       .addCase(fetchLocations.fulfilled, (state, action) => {
         state.loading = false;
@@ -165,6 +234,8 @@ const locationSlice = createSlice({
 
 export const { clearGeoStatus, clearDistricts } = locationSlice.actions;
 
+// ✅ selectors
+export const selectCountries = (s) => s.location?.countries ?? [];
 export const selectStates = (s) => s.location?.states ?? [];
 export const selectDistricts = (s) => s.location?.districts ?? [];
 export const selectLocations = (s) => s.location?.locations ?? [];
