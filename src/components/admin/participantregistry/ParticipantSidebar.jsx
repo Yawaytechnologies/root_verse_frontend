@@ -23,6 +23,7 @@ const nav = [
   { type: "section", label: "Participant Registry" },
    
    { to: "/admin/participant-registry/quality-checker", label: "Quality Checker", icon: FiDatabase },
+   { to: "/admin/participant-registry/crate-packer", label: "Crate Packer", icon: FiBox },
    
 
    

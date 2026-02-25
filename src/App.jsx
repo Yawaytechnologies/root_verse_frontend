@@ -21,7 +21,7 @@ import TotalTraceability from './pages/consumertraceability/TotalTraceability.js
 import ParticipantLayout from './components/admin/participantregistry/ParticipantLayout.jsx';
 import ParticipantDashboard from './components/admin/participantregistry/ParticipantDashboard.jsx';
 import QualityController from './components/admin/participantregistry/QualityController.jsx';
-
+import CratePackerCreate from './components/admin/participantregistry/CratePackerCreation.jsx';
 
 import QualityInspectionLogs from './components/admin/wildcapture/QualityInspectionLogs.jsx';
 import LandingQCPage from './components/admin/wildcapture/LandingQC.jsx';
@@ -120,6 +120,7 @@ export default function App() {
         <Route index element={<ParticipantDashboard />} />
         <Route path='dashboard' element={<ParticipantDashboard />} />
         <Route path='quality-checker' element={<QualityController />} />
+        <Route path='crate-packer' element={<CratePackerCreate />} />
       </Route>
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
