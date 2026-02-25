@@ -10,6 +10,7 @@ import dashboardReducer from "../reducer/dashboardSlice"
 import locationcreationReducer from "../reducer/locationcreationSlice";
 import fishingMethodsReducer from "../reducer/fishingMethodSlice"
 import crateQrWildReducer from "../reducer/crateQrWildSlice";
+import cratePackerReducer from "../reducer/cratepackerCreateSlice";
 export const store = configureStore({
   reducer: {
     qr: qrReducer,
@@ -22,5 +23,6 @@ export const store = configureStore({
     location: locationcreationReducer,
     fishingMethods: fishingMethodsReducer,
     crateQrWild: crateQrWildReducer,  
+    cratePacker: cratePackerReducer
   },
 });
