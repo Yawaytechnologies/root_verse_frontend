@@ -15,6 +15,8 @@ import TripApprovalDetails from './components/admin/wildcapture/TripApprovalDeta
 import LocationCreation from './components/admin/wildcapture/LocationCreation.jsx';
 import FishingMethodsPage from './components/admin/wildcapture/FishingMethods.jsx';
 import CrateQrWildGenerator from './components/admin/wildcapture/CrateQrWild.jsx';
+import QcInspectionTable from './components/admin/wildcapture/QCInspectionTable.jsx';
+
 //Total Traceability user module imports
 import TotalTraceability from './pages/consumertraceability/TotalTraceability.jsx';
 // ===== Participant Registry admin side imports =====
@@ -88,6 +90,7 @@ export default function App() {
         <Route path='vessels' element={<VesselRegistryManagement />} />
         <Route path='quality-checker' element={<QualityChecker />} />
         <Route path='crate-wild' element={<CrateQrWildGenerator />} />
+        <Route path='quality-inspection' element={<QcInspectionTable />} />
         
         <Route path='quality-inspection-logs' element={<QualityInspectionLogs />} />
 
