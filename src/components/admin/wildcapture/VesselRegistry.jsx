@@ -50,6 +50,29 @@ function StatusSelect({ value, disabled, onChange, className = "" }) {
   );
 }
 
+function StatusPill({ value, className = "" }) {
+  const v = String(value || "PENDING").toUpperCase();
+
+  const tone =
+    v === "APPROVED"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      : v === "PENDING"
+      ? "border-amber-200 bg-amber-50 text-amber-800"
+      : "border-slate-200 bg-slate-50 text-slate-700";
+
+  return (
+    <div
+      className={[
+        "inline-flex h-10 min-w-[135px] items-center justify-center rounded-2xl border px-4 text-xs font-extrabold",
+        tone,
+        className,
+      ].join(" ")}
+    >
+      {v}
+    </div>
+  );
+}
+
 function SectionHeader({ title, count, page, totalPages, onPrev, onNext }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -98,7 +121,9 @@ function ModalShell({ title, onClose, children }) {
         <div className="mx-auto w-full max-w-4xl">
           <div className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-xl">
             <div className="sticky top-0 z-10 flex items-start justify-between border-b border-emerald-100 bg-white px-5 py-4">
-              <div className="text-base font-extrabold text-slate-900">{title}</div>
+              <div className="text-base font-extrabold text-slate-900">
+                {title}
+              </div>
               <button
                 type="button"
                 onClick={onClose}
@@ -121,7 +146,9 @@ function InfoCard({ label, value }) {
       <div className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-500">
         {label}
       </div>
-      <div className="mt-2 text-sm font-semibold text-slate-900 break-words">{value}</div>
+      <div className="mt-2 text-sm font-semibold text-slate-900 break-words">
+        {value}
+      </div>
     </div>
   );
 }
@@ -187,8 +214,14 @@ export default function VesselRegistry() {
     );
   }, [searched]);
 
-  const pendingTotalPages = Math.max(1, Math.ceil(pendingRows.length / PAGE_SIZE));
-  const approvedTotalPages = Math.max(1, Math.ceil(approvedRows.length / PAGE_SIZE));
+  const pendingTotalPages = Math.max(
+    1,
+    Math.ceil(pendingRows.length / PAGE_SIZE)
+  );
+  const approvedTotalPages = Math.max(
+    1,
+    Math.ceil(approvedRows.length / PAGE_SIZE)
+  );
 
   useEffect(() => {
     setPendingPage(1);
@@ -263,7 +296,7 @@ export default function VesselRegistry() {
     await dispatch(fetchVessels());
   };
 
-  const RenderDesktopTable = ({ data }) => (
+  const RenderDesktopTable = ({ data, statusMode = "editable" }) => (
     <div className="hidden lg:block">
       <table className="w-full">
         <thead className="bg-emerald-50/60">
@@ -279,13 +312,19 @@ export default function VesselRegistry() {
         <tbody className="divide-y divide-emerald-100">
           {loading ? (
             <tr>
-              <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
+              <td
+                colSpan={5}
+                className="px-5 py-10 text-center text-sm text-slate-500"
+              >
                 Loading...
               </td>
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-500">
+              <td
+                colSpan={5}
+                className="px-5 py-10 text-center text-sm text-slate-500"
+              >
                 No vessels found.
               </td>
             </tr>
@@ -319,11 +358,15 @@ export default function VesselRegistry() {
                   </td>
 
                   <td className="px-5 py-4">
-                    <StatusSelect
-                      value={displayStatus}
-                      disabled={isUpdating}
-                      onChange={(next) => changeStatus(v, next)}
-                    />
+                    {statusMode === "readonly" ? (
+                      <StatusPill value={displayStatus} />
+                    ) : (
+                      <StatusSelect
+                        value={displayStatus}
+                        disabled={isUpdating}
+                        onChange={(next) => changeStatus(v, next)}
+                      />
+                    )}
                   </td>
 
                   <td className="px-5 py-4">
@@ -347,12 +390,16 @@ export default function VesselRegistry() {
     </div>
   );
 
-  const RenderMobileCards = ({ data }) => (
+  const RenderMobileCards = ({ data, statusMode = "editable" }) => (
     <div className="lg:hidden divide-y divide-emerald-100">
       {loading ? (
-        <div className="px-4 py-10 text-center text-sm text-slate-500">Loading...</div>
+        <div className="px-4 py-10 text-center text-sm text-slate-500">
+          Loading...
+        </div>
       ) : data.length === 0 ? (
-        <div className="px-4 py-10 text-center text-sm text-slate-500">No vessels found.</div>
+        <div className="px-4 py-10 text-center text-sm text-slate-500">
+          No vessels found.
+        </div>
       ) : (
         data.map((v) => {
           const isUpdating = !!updatingById?.[v.id];
@@ -367,7 +414,9 @@ export default function VesselRegistry() {
 
                 <div className="mt-1 text-[11px] text-slate-500 truncate">
                   {v.rv_vessel_id || `ID: ${v.id}`}{" "}
-                  {v.govt_registration_number ? `• Reg: ${v.govt_registration_number}` : ""}
+                  {v.govt_registration_number
+                    ? `• Reg: ${v.govt_registration_number}`
+                    : ""}
                 </div>
 
                 <div className="mt-2 text-sm font-semibold text-slate-800 truncate">
@@ -379,13 +428,16 @@ export default function VesselRegistry() {
                     Status
                   </div>
                   <div className="mt-2">
-                    {/* ✅ mobile stays full width */}
-                    <StatusSelect
-                      className="w-full"
-                      value={displayStatus}
-                      disabled={isUpdating}
-                      onChange={(next) => changeStatus(v, next)}
-                    />
+                    {statusMode === "readonly" ? (
+                      <StatusPill className="w-full" value={displayStatus} />
+                    ) : (
+                      <StatusSelect
+                        className="w-full"
+                        value={displayStatus}
+                        disabled={isUpdating}
+                        onChange={(next) => changeStatus(v, next)}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -420,7 +472,8 @@ export default function VesselRegistry() {
               Vessel Approval
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Status dropdown supports only <b>PENDING</b> / <b>APPROVED</b>. Type moved to View popup.
+              Status dropdown supports only <b>PENDING</b> / <b>APPROVED</b>. Type
+              moved to View popup.
             </p>
           </div>
 
@@ -462,12 +515,14 @@ export default function VesselRegistry() {
             page={pendingPage}
             totalPages={pendingTotalPages}
             onPrev={() => setPendingPage((p) => Math.max(1, p - 1))}
-            onNext={() => setPendingPage((p) => Math.min(pendingTotalPages, p + 1))}
+            onNext={() =>
+              setPendingPage((p) => Math.min(pendingTotalPages, p + 1))
+            }
           />
         </div>
 
-        <RenderDesktopTable data={pendingPaged} />
-        <RenderMobileCards data={pendingPaged} />
+        <RenderDesktopTable data={pendingPaged} statusMode="editable" />
+        <RenderMobileCards data={pendingPaged} statusMode="editable" />
 
         <div className="border-t border-emerald-100 bg-white px-4 py-3">
           <div className="text-xs text-slate-500">
@@ -479,7 +534,10 @@ export default function VesselRegistry() {
             <span className="font-semibold text-slate-900">
               {Math.min(pendingPage * PAGE_SIZE, pendingRows.length)}
             </span>{" "}
-            of <span className="font-semibold text-slate-900">{pendingRows.length}</span>
+            of{" "}
+            <span className="font-semibold text-slate-900">
+              {pendingRows.length}
+            </span>
           </div>
         </div>
       </div>
@@ -493,12 +551,15 @@ export default function VesselRegistry() {
             page={approvedPage}
             totalPages={approvedTotalPages}
             onPrev={() => setApprovedPage((p) => Math.max(1, p - 1))}
-            onNext={() => setApprovedPage((p) => Math.min(approvedTotalPages, p + 1))}
+            onNext={() =>
+              setApprovedPage((p) => Math.min(approvedTotalPages, p + 1))
+            }
           />
         </div>
 
-        <RenderDesktopTable data={approvedPaged} />
-        <RenderMobileCards data={approvedPaged} />
+        {/* ✅ Approved is READONLY (no dropdown) */}
+        <RenderDesktopTable data={approvedPaged} statusMode="readonly" />
+        <RenderMobileCards data={approvedPaged} statusMode="readonly" />
 
         <div className="border-t border-emerald-100 bg-white px-4 py-3">
           <div className="text-xs text-slate-500">
@@ -510,7 +571,10 @@ export default function VesselRegistry() {
             <span className="font-semibold text-slate-900">
               {Math.min(approvedPage * PAGE_SIZE, approvedRows.length)}
             </span>{" "}
-            of <span className="font-semibold text-slate-900">{approvedRows.length}</span>
+            of{" "}
+            <span className="font-semibold text-slate-900">
+              {approvedRows.length}
+            </span>
           </div>
         </div>
       </div>
@@ -532,21 +596,39 @@ export default function VesselRegistry() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <InfoCard label="Govt Registration No" value={active.govt_registration_number || "—"} />
+              <InfoCard
+                label="Govt Registration No"
+                value={active.govt_registration_number || "—"}
+              />
               <InfoCard label="Home Port" value={active.home_port || "—"} />
               <InfoCard label="Vessel Type" value={active.vessel_type || "—"} />
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <InfoCard label="Local Identifier" value={active.local_identifier || "—"} />
+              <InfoCard
+                label="Local Identifier"
+                value={active.local_identifier || "—"}
+              />
               <InfoCard label="Owner ID" value={active.owner_id ?? "—"} />
-              <InfoCard label="Fishing License No" value={active.fishing_license_no || "—"} />
+              <InfoCard
+                label="Fishing License No"
+                value={active.fishing_license_no || "—"}
+              />
             </div>
 
             <div className="grid gap-3 md:grid-cols-4">
-              <InfoCard label="Crew Capacity Max" value={active.crew_capacity_max ?? "—"} />
-              <InfoCard label="Storage Capacity (KG)" value={active.storage_capacity_kg ?? "—"} />
-              <InfoCard label="Engine Power (HP)" value={active.engine_power_hp ?? "—"} />
+              <InfoCard
+                label="Crew Capacity Max"
+                value={active.crew_capacity_max ?? "—"}
+              />
+              <InfoCard
+                label="Storage Capacity (KG)"
+                value={active.storage_capacity_kg ?? "—"}
+              />
+              <InfoCard
+                label="Engine Power (HP)"
+                value={active.engine_power_hp ?? "—"}
+              />
               <InfoCard label="Fuel Type" value={active.fuel_type || "—"} />
             </div>
 
