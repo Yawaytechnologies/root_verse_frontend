@@ -4,7 +4,6 @@
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-
 @layer base {
   html,
   body,
@@ -16,6 +15,7 @@
     @apply text-slate-900;
   }
 }
+
 /* global.css (or wherever your Tailwind base styles are imported) */
 
 @keyframes slide-in-left {
@@ -39,7 +39,6 @@
     transform: translateX(0);
   }
 }
-
 
 /* RegistryHub slide animations */
 @keyframes hub-slide-down {
@@ -72,16 +71,15 @@
   animation: hub-slide-up 2880ms ease-out both;
 }
 
-
 @layer utilities {
-  /* SLF-style: thin green scrollbar (NOT bulged) */
+  /* ✅ Thin scrollbar; color comes from --rv-accent set in each sidebar */
   .rv-scrollbar {
-    scrollbar-width: thin;          /* firefox */
-    scrollbar-color: #22e5a6 transparent;
+    scrollbar-width: thin; /* firefox */
+    scrollbar-color: var(--rv-accent, #22e5a6) transparent;
   }
 
   .rv-scrollbar::-webkit-scrollbar {
-    width: 5px;                     /* ✅ thinner */
+    width: 5px; /* ✅ thinner */
   }
 
   .rv-scrollbar::-webkit-scrollbar-track {
@@ -89,15 +87,18 @@
   }
 
   .rv-scrollbar::-webkit-scrollbar-thumb {
-    background: #22e5a6;            /* ✅ green */
+    background: var(--rv-accent, #22e5a6);
     border-radius: 999px;
-    box-shadow: 0 0 10px rgba(34, 229, 166, 0.35);  /* ✅ subtle glow */
+
+    /* ✅ glow follows accent (blue sidebar = blue glow, green sidebar = green glow) */
+    box-shadow: 0 0 10px color-mix(in srgb, var(--rv-accent, #22e5a6) 35%, transparent);
   }
 
   .rv-scrollbar::-webkit-scrollbar-button {
-    display: none;                  /* ✅ remove arrows */
+    display: none; /* ✅ remove arrows */
   }
 }
+
 /* Admin layout background: dots + soft mint gradient */
 .rv-layout-bg {
   background-image:

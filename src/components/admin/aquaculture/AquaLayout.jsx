@@ -33,7 +33,7 @@ export default function AquaLayout() {
 
       {/* Main area */}
       <div className="flex min-h-screen flex-col">
-        <AquaHeader onToggleSidebar={handleToggleSidebar} />
+        <AquaHeader onToggleSidebar={handleToggleSidebar} accent="#38bdf8" />
         <main className="flex-1 px-4 pb-6 pt-4 sm:px-6 lg:px-8">
           <Outlet />
         </main>

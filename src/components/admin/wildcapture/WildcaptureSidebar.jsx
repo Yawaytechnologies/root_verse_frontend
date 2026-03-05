@@ -19,7 +19,7 @@ const nav = [
   { to: "/admin/wild-capture/vessels", label: "Vessels Registry", icon: FiAnchor },
   { to: "/admin/wild-capture/trip-approval", label: "Fishing Trips", icon: IoBoatOutline },
   
-  // { to: "/admin/wild-capture/quality-inspection-logs", label: "Quality Inspection Logs", icon: FcInspection },
+  { to: "/admin/wild-capture/quality-inspection", label: "Quality Inspection Logs", icon: FcInspection },
   { to: "/admin/wild-capture/location-creation", label: "Fishing Port", icon: IoLocationOutline },
   { to: "/admin/wild-capture/species", label: "Species", icon: FiDatabase },
   { to: "/admin/wild-capture/fishing-methods", label: "Fishing Methods", icon: GiFishingHook },

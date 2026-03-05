@@ -1,9 +1,10 @@
 // src/modules/admin/ui/AdminHeader.jsx
 import { useEffect, useState } from "react";
-import { FiMenu, FiSearch, FiGlobe, FiUser } from "react-icons/fi";
+import { FiMenu, FiGlobe, FiUser, FiMaximize, FiMinimize } from "react-icons/fi";
 
-export default function AdminHeader({ onToggleSidebar }) {
+export default function AdminHeader({ onToggleSidebar, accent = "#22e5a6" }) {
   const [scrolled, setScrolled] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -12,53 +13,79 @@ export default function AdminHeader({ onToggleSidebar }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    sync();
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // fullscreen can be blocked by browser policy
+    }
+  };
+
   return (
     <header
-      className={`
-        sticky top-0 z-30
-        transition-colors duration-200
-        ${scrolled
-          ? "bg-[#f3f4f6] border-b border-slate-200 shadow-sm"
-          : "bg-transparent border-b border-transparent"}
-      `}
+      style={{ "--rv-accent": accent }}
+      className={[
+        "sticky top-0 z-30 relative",
+        "border-b border-white/10",
+        "bg-[#070b14]/85 backdrop-blur-xl",
+        "transition-all duration-200",
+        scrolled ? "shadow-[0_18px_70px_rgba(0,0,0,0.40)] bg-[#070b14]/92" : "",
+      ].join(" ")}
     >
-      {/* this row is the header content, no card/rounded container */}
-      <div className="flex items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        {/* Collapse / sidebar toggle */}
+      {/* ✅ subtle aura like sidebar */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-24 -top-24 h-[260px] w-[260px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.06),transparent_60%)]" />
+        <div className="absolute -right-40 -top-24 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--rv-accent)_18%,transparent),transparent_60%)]" />
+      </div>
+
+      {/* ✅ accent underline (so it never looks plain) */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px] bg-[linear-gradient(90deg,transparent,var(--rv-accent),transparent)] opacity-50" />
+
+      <div className="relative flex items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        {/* Sidebar toggle */}
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-black transition-colors"
+          className={[
+            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl",
+            "bg-white/5 text-white/90 border border-white/10",
+            "hover:bg-white/10 hover:border-white/15",
+            "transition-colors",
+            "shadow-[0_10px_24px_rgba(0,0,0,0.35)]",
+          ].join(" ")}
+          title="Toggle sidebar"
         >
           <FiMenu className="h-5 w-5" />
         </button>
 
-        {/* Search */}
-        <div className="flex-1">
-          <div className="relative">
-            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="
-                block w-full rounded-full border
-                border-slate-200 bg-slate-50
-                py-2.5 pl-9 pr-3 text-sm
-                text-slate-800 placeholder:text-slate-400
-                focus:bg-white focus:border-slate-400
-                focus:outline-none focus:ring-2 focus:ring-slate-300
-              "
-            />
-          </div>
-        </div>
+        {/* Spacer (search removed) */}
+        <div className="flex-1" />
 
         {/* Right icons */}
-        <div className="hidden md:flex items-center gap-3">
-          <RoundIconButton>
+        <div className="flex items-center gap-3">
+          <RoundIconButton
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Exit full screen" : "Full screen"}
+          >
+            {isFullscreen ? <FiMinimize className="h-4 w-4" /> : <FiMaximize className="h-4 w-4" />}
+          </RoundIconButton>
+
+          <RoundIconButton title="Language">
             <FiGlobe className="h-4 w-4" />
           </RoundIconButton>
 
-          <RoundIconButton>
+          <RoundIconButton title="Profile">
             <FiUser className="h-4 w-4" />
           </RoundIconButton>
         </div>
@@ -67,18 +94,18 @@ export default function AdminHeader({ onToggleSidebar }) {
   );
 }
 
-function RoundIconButton({ children }) {
+function RoundIconButton({ children, onClick, title }) {
   return (
     <button
       type="button"
-      className="
-        flex h-10 w-10 items-center justify-center
-        rounded-full
-        bg-slate-100 text-slate-700
-        border border-slate-200
-        hover:bg-slate-200
-        transition-colors
-      "
+      onClick={onClick}
+      title={title}
+      className={[
+        "flex h-10 w-10 items-center justify-center rounded-2xl",
+        "bg-white/5 text-white/80 border border-white/10",
+        "hover:bg-white/10 hover:text-[var(--rv-accent)] hover:border-[var(--rv-accent)]",
+        "transition-colors",
+      ].join(" ")}
     >
       {children}
     </button>

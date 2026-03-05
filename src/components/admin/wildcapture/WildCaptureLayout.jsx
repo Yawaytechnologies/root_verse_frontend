@@ -4,6 +4,10 @@ import { Outlet } from "react-router-dom";
 import AdminSidebar from "../wildcapture/WildcaptureSidebar";
 import AdminHeader from "../wildcapture/WildCaptureHeader";
 
+const SIDEBAR_EXPANDED_PX = 288; // w-72
+const SIDEBAR_COLLAPSED_PX = 80; // w-20
+const HEADER_H_PX = 64; // h-16
+
 export default function AdminLayout() {
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -45,41 +49,42 @@ export default function AdminLayout() {
     else setMobileOpen((v) => !v);
   };
 
-  // ✅ this drives the header's left offset
-  const sidebarOffset = isDesktop ? (collapsed ? "5rem" : "18rem") : "0px";
-
-  if (isDesktop) {
-    const sidePadding = collapsed ? "pl-20" : "pl-72";
-
-    return (
-      <div
-        style={{ "--rv-sidebar-offset": sidebarOffset }}
-        className={`rv-layout-bg relative w-full min-h-[100dvh] ${sidePadding} overflow-x-hidden`}
-      >
-        <AdminSidebar collapsed={collapsed} mobileOpen={false} onCloseMobile={() => {}} />
-
-        <div className="flex min-h-[100dvh] flex-col min-w-0">
-          <AdminHeader onToggleSidebar={handleToggleSidebar} />
-
-          <main className="flex-1 min-w-0 px-4 pb-6 pt-14 sm:px-6 lg:px-8 bg-transparent">
-            <Outlet />
-          </main>
-        </div>
-      </div>
-    );
-  }
+  // ✅ single source of truth for offsets
+  const sidebarOffsetPx = isDesktop
+    ? collapsed
+      ? SIDEBAR_COLLAPSED_PX
+      : SIDEBAR_EXPANDED_PX
+    : 0;
 
   return (
     <div
-      style={{ "--rv-sidebar-offset": sidebarOffset }}
+      style={{
+        "--rv-sidebar-offset": `${sidebarOffsetPx}px`,
+        "--rv-header-h": `${HEADER_H_PX}px`,
+      }}
       className="rv-layout-bg relative w-full min-h-[100dvh] overflow-x-hidden"
     >
-      <AdminSidebar collapsed={false} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
+      <AdminSidebar
+        collapsed={isDesktop ? collapsed : false}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
 
-      <div className="flex min-h-[100dvh] flex-col min-w-0">
+      {/* ✅ Header is fixed, content must be offset by sidebar + header height */}
+      <div className="min-h-[100dvh] min-w-0">
         <AdminHeader onToggleSidebar={handleToggleSidebar} />
 
-        <main className="flex-1 min-w-0 px-4 pb-6 pt-14 bg-transparent">
+        <main
+          className={[
+            // ✅ push content to the right of sidebar (desktop only)
+            "ml-[var(--rv-sidebar-offset)]",
+            // ✅ push content below fixed header
+            "pt-[var(--rv-header-h)]",
+            // spacing
+            "min-h-[100dvh] min-w-0 px-4 pb-6 sm:px-6 lg:px-8",
+            "bg-transparent",
+          ].join(" ")}
+        >
           <Outlet />
         </main>
       </div>
