@@ -32,9 +32,15 @@ import QrGeneratorPage from './components/admin/wildcapture/AdminQrGenerator.jsx
 import VesselOwner from './components/admin/wildcapture/VesselOwner.jsx';
 import TripApproval from './components/admin/wildcapture/TripApproval.jsx';
 
+//Aqua admin module imports
 import AquaLayout from './components/admin/aquaculture/AquaLayout';
 import AquaDashboard from './components/admin/aquaculture/AquaDashboard';
 import AquaRegister from './components/admin/aquaculture/AquaRegister';
+import OwnerApproval from './components/admin/aquaculture/OwnerApproval.jsx';
+import FarmPondApproval from './components/admin/aquaculture/FarmPondApproval.jsx';
+import DailyLog from './components/admin/aquaculture/DailyLogs.jsx';
+import AquaHarvest from "../src/components/admin/aquaculture/AquaHarvest.jsx"
+import AquaCrate from "../src/components/admin/aquaculture/AquaCrate.jsx"
 
 import MariLayout from './components/admin/mariculture/MariLayout';
 import MariDashboard from './components/admin/mariculture/MariDashboard';
@@ -59,6 +65,7 @@ import WaterLogPage from './pages/Aquapage/WaterLogPage.jsx';
 import HealthLogPage from './pages/Aquapage/HealthLogPage.jsx';
 import CrateAssignmentPage from './pages/Aquapage/CrateAssignmentPage';
 import TraceabilityLookupPage from './pages/Aquapage/TraceabilityLookupPage';
+
 
 // ===== Wild Capture (user console) imports – from HEAD =====
 import WildCaptureUserDashboard from './pages/wildPage/WildCaptureDashboard';
@@ -109,7 +116,14 @@ export default function App() {
       {/* Aquaculture admin app */}
       <Route path='/admin/aqua-culture' element={<AquaLayout />}>
         <Route index element={<AquaDashboard />} />
+        <Route path='aqua-dashboard' element={<AquaDashboard />} />
         <Route path='ponds' element={<AquaRegister />} />
+        <Route path='owner-approval' element={<OwnerApproval />} />
+        <Route path='farm-pond-approval' element={<FarmPondApproval />} />
+        <Route path='daily-log' element={<DailyLog />} />
+         <Route path='aqua-harvest' element={<AquaHarvest />} />
+          <Route path='aqua-crate' element={<AquaCrate />} />
+        
       </Route>
 
       {/* Mariculture admin app */}
