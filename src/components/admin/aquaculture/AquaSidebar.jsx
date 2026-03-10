@@ -8,7 +8,7 @@ import { IoWaterOutline } from "react-icons/io5";
 import { MdQrCodeScanner } from "react-icons/md";
 
 const nav = [
-  { to: "/admin/aqua-culture/dashboard", label: "Dashboard", icon: FiHome },
+  { to: "/admin/aqua-culture/aqua-dashboard", label: "Dashboard", icon: FiHome },
 
   { type: "section", label: "Aquaculture Ops" },
 
@@ -19,8 +19,8 @@ const nav = [
     icon: IoWaterOutline,
   },
   { to: "/admin/aqua-culture/daily-log", label: "Daily Log", icon: LuLogs },
-  { to: "/admin/aqua-culture/harvest", label: "Harvest", icon: FiCheckCircle },
-  { to: "/admin/aqua-culture/crate", label: "Crate", icon: MdQrCodeScanner },
+  { to: "/admin/aqua-culture/aqua-harvest", label: "Harvest", icon: FiCheckCircle },
+  { to: "/admin/aqua-culture/aqua-crate", label: "Crate", icon: MdQrCodeScanner },
 ];
 
 export default function AdminSidebar({
