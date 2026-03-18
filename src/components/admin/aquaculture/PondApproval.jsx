@@ -1,14 +1,26 @@
+// src/modules/admin/aquaculture/pages/PondApproval.jsx
+/**
+ * Pond Approval Page
+ * ─────────────────────────────────────────────
+ * ✅ GET /api/ponds on mount
+ * ✅ Pending table  → status dropdown → PUT /api/ponds/:id
+ * ✅ Approved table → read-only
+ * ✅ Detail modal   → full pond info popup
+ * ✅ Mobile-first: cards on mobile, table on lg+
+ * ✅ Redux: pondSlice + pondActions + pondService
+ */
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchAllOwners, approveOwner, rejectOwner } from "../../../redux/action/aquaOwnerActions";
+import { fetchAllPonds, approvePond, rejectPond } from "../../../redux/action/pondApprovalActions";
 import {
-  selectPendingOwners,
-  selectApprovedOwners,
-  selectOwnersLoading,
-  selectOwnersError,
+  selectPendingPonds,
+  selectApprovedPonds,
+  selectPondsLoading,
+  selectPondsError,
   clearError,
-} from "../../../redux/reducer/aquaOwnerSlice";
+} from "../../../redux/reducer/pondApprovalSlice";
 
 /* ══════════════════════════════════════════
    ICONS
@@ -24,22 +36,22 @@ const IcoX       = (p) => <SvgIco d="M18 6 6 18M6 6l12 12" {...p} />;
 const IcoChevron = (p) => <SvgIco d="m6 9 6 6 6-6" {...p} />;
 const IcoRefresh = (p) => <SvgIco d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M3 16l2.26 2.26A9.75 9.75 0 0 0 12 21a9 9 0 0 0 9-9" {...p} />;
 const IcoSearch  = (p) => <SvgIco d="M21 21l-4.3-4.3M11 18A7 7 0 1 0 4 11a7 7 0 0 0 7 7Z" {...p} />;
+const IcoMap     = (p) => <SvgIco d="M12 21S5 13.5 5 9a7 7 0 0 1 14 0c0 4.5-7 12-7 12Z M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" {...p} />;
+const IcoPond    = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round"
+       strokeLinejoin="round" stroke="currentColor" {...p}>
+    <ellipse cx="12" cy="12" rx="10" ry="5" />
+    <path d="M2 12c0 4 4.5 7 10 7s10-3 10-7" />
+    <path d="M8 10c1-1.5 2-2 4-2s3 .5 4 2" />
+  </svg>
+);
 const IcoEye     = (p) => (
   <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor" {...p}>
     <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
-const IcoUser    = (p) => (
-  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" stroke="currentColor" {...p}>
-    <path d="M20 21a8 8 0 0 0-16 0" />
-    <circle cx="12" cy="8" r="4" />
-  </svg>
-);
-const IcoPhone   = (p) => <SvgIco d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.08 3.4 2 2 0 0 1 3.05 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" {...p} />;
-const IcoMail    = (p) => <SvgIco d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" {...p} />;
-const IcoMap     = (p) => <SvgIco d="M12 21S5 13.5 5 9a7 7 0 0 1 14 0c0 4.5-7 12-7 12Z M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" {...p} />;
-const IcoDoc     = (p) => <SvgIco d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" {...p} />;
+const IcoFish    = (p) => <SvgIco d="M6.5 12C6.5 12 4 10 2 10c0 0 2 2 2 2s-2 2-2 2c2 0 4.5-2 4.5-2ZM6.5 12h11M22 8s-2 4-4 4-4-4-4-4M22 16s-2-4-4-4-4 4-4 4" {...p} />;
 
 /* ══════════════════════════════════════════
    STATUS CONFIG
@@ -47,22 +59,14 @@ const IcoDoc     = (p) => <SvgIco d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2
 const STATUS_META = {
   pending:  { dot: "bg-amber-400",   badge: "bg-amber-50 text-amber-700 ring-amber-200",       label: "Pending"  },
   approved: { dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 ring-emerald-200", label: "Approved" },
-  verified: { dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 ring-emerald-200", label: "Verified" },
   rejected: { dot: "bg-rose-500",    badge: "bg-rose-50 text-rose-700 ring-rose-200",           label: "Rejected" },
-};
-
-/** Normalize API status string to lowercase key for STATUS_META */
-const normStatus = (s) => {
-  const v = s?.toLowerCase() ?? "pending";
-  if (v === "verified") return "verified";
-  return v;
 };
 
 /* ══════════════════════════════════════════
    ATOMS
 ══════════════════════════════════════════ */
 function StatusBadge({ status }) {
-  const m = STATUS_META[normStatus(status)] ?? STATUS_META.pending;
+  const m = STATUS_META[status] ?? STATUS_META.pending;
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${m.badge}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
@@ -71,24 +75,24 @@ function StatusBadge({ status }) {
   );
 }
 
-function OwnerCode({ code }) {
-  if (!code) return null;
+function PondCode({ code, id }) {
   return (
     <span className="rounded-lg bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600 ring-1 ring-slate-200/80">
-      {code}
+      {code || `ID-${id}`}
     </span>
   );
 }
 
 /* ══════════════════════════════════════════
-   STATUS DROPDOWN (fixed-position)
+   STATUS DROPDOWN  (fixed-position — escapes overflow parents)
 ══════════════════════════════════════════ */
-function StatusDropdown({ owner, onApprove, onReject, isUpdating }) {
+function StatusDropdown({ pond, onApprove, onReject, isUpdating }) {
   const [open, setOpen] = useState(false);
-  const [pos,  setPos]  = useState({ bottom: 0, left: 0 });
-  const btnRef  = useRef();
+  const [pos, setPos]   = useState({ top: 0, left: 0 });
+  const btnRef = useRef();
   const menuRef = useRef();
 
+  // close on outside click
   useEffect(() => {
     if (!open) return;
     const h = (e) => {
@@ -99,6 +103,7 @@ function StatusDropdown({ owner, onApprove, onReject, isUpdating }) {
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
 
+  // close on scroll/resize so menu doesn't float away
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
@@ -110,13 +115,13 @@ function StatusDropdown({ owner, onApprove, onReject, isUpdating }) {
   function handleToggle() {
     if (!btnRef.current) return;
     const r = btnRef.current.getBoundingClientRect();
+    // open above the button so it never goes off-screen at the bottom
     setPos({ bottom: window.innerHeight - r.top + 6, left: r.left });
     setOpen((v) => !v);
   }
 
-  const status = normStatus(owner.verification_status);
-  const m = STATUS_META[status] ?? STATUS_META.pending;
-  const isPending = status === "pending";
+  const m = STATUS_META[pond.status] ?? STATUS_META.pending;
+  const isPending = pond.status === "pending";
 
   return (
     <>
@@ -148,7 +153,7 @@ function StatusDropdown({ owner, onApprove, onReject, isUpdating }) {
             CHANGE STATUS
           </div>
           <button
-            onClick={() => { setOpen(false); onApprove(owner); }}
+            onClick={() => { setOpen(false); onApprove(pond); }}
             className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 active:bg-emerald-100 transition"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100">
@@ -157,7 +162,7 @@ function StatusDropdown({ owner, onApprove, onReject, isUpdating }) {
             Approve
           </button>
           <button
-            onClick={() => { setOpen(false); onReject(owner); }}
+            onClick={() => { setOpen(false); onReject(pond); }}
             className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 active:bg-rose-100 transition"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-rose-100">
@@ -205,23 +210,21 @@ function SearchInput({ value, onChange, placeholder }) {
 }
 
 /* ══════════════════════════════════════════
-   PENDING OWNER CARD (mobile)
+   PENDING POND CARD (mobile)
 ══════════════════════════════════════════ */
-function PendingOwnerCard({ owner, onApprove, onReject, onView, isUpdating, rowErr }) {
-  const status = normStatus(owner.verification_status);
+function PendingPondCard({ pond, onApprove, onReject, onView, isUpdating, rowErr }) {
   return (
     <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_2px_8px_rgba(15,23,42,0.06)]">
       {/* header */}
       <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 border-b border-slate-100 rounded-t-2xl overflow-hidden">
         <div className="min-w-0">
-          <p className="font-semibold text-[var(--rv-ink)] truncate">{owner.username || "—"}</p>
+          <p className="font-semibold text-[var(--rv-ink)] truncate">{pond.name}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {owner.owner_id && <OwnerCode code={owner.owner_id} />}
-            <StatusBadge status={status} />
+            <PondCode code={pond.pond_code} id={pond.id} />
           </div>
         </div>
         <button
-          onClick={() => onView(owner)}
+          onClick={() => onView(pond)}
           className="shrink-0 flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-200 active:scale-95 transition"
         >
           <IcoEye className="h-3.5 w-3.5" /> View
@@ -231,25 +234,27 @@ function PendingOwnerCard({ owner, onApprove, onReject, onView, isUpdating, rowE
       {/* body */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Phone</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{owner.phone_no || "—"}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Farm ID</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{pond.farm_id ?? "—"}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Address</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)] truncate">{owner.address || "—"}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Species ID</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{pond.species_id ?? "—"}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">District</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{owner.district_name || "—"}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Area</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">
+            {pond.area ? `${pond.area} ac` : "—"}
+          </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">State</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{owner.state_name || "—"}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Pond Code</p>
+          <p className="mt-0.5 text-sm font-mono text-[var(--rv-ink)]">{pond.pond_code || "—"}</p>
         </div>
         <div className="col-span-2">
           <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Submitted</p>
           <p className="mt-0.5 text-xs text-[var(--rv-muted)]">
-            {owner.created_at ? new Date(owner.created_at).toLocaleString() : "—"}
+            {pond.created_at ? new Date(pond.created_at).toLocaleString() : "—"}
           </p>
         </div>
       </div>
@@ -257,7 +262,7 @@ function PendingOwnerCard({ owner, onApprove, onReject, onView, isUpdating, rowE
       {/* footer */}
       <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 bg-slate-50/60 rounded-b-2xl">
         <p className="text-[11px] text-[var(--rv-muted)]">Change status:</p>
-        <StatusDropdown owner={owner} onApprove={onApprove} onReject={onReject} isUpdating={isUpdating} />
+        <StatusDropdown pond={pond} onApprove={onApprove} onReject={onReject} isUpdating={isUpdating} />
       </div>
 
       {rowErr && (
@@ -270,21 +275,21 @@ function PendingOwnerCard({ owner, onApprove, onReject, onView, isUpdating, rowE
 }
 
 /* ══════════════════════════════════════════
-   APPROVED OWNER CARD (mobile)
+   APPROVED POND CARD (mobile)
 ══════════════════════════════════════════ */
-function ApprovedOwnerCard({ owner, onView }) {
+function ApprovedPondCard({ pond, onView }) {
   return (
     <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_2px_8px_rgba(15,23,42,0.06)] overflow-hidden">
       <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 border-b border-slate-100">
         <div className="min-w-0">
-          <p className="font-semibold text-[var(--rv-ink)] truncate">{owner.username || "—"}</p>
+          <p className="font-semibold text-[var(--rv-ink)] truncate">{pond.name}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {owner.owner_id && <OwnerCode code={owner.owner_id} />}
-            <StatusBadge status={normStatus(owner.verification_status)} />
+            <PondCode code={pond.pond_code} id={pond.id} />
+            <StatusBadge status="approved" />
           </div>
         </div>
         <button
-          onClick={() => onView(owner)}
+          onClick={() => onView(pond)}
           className="shrink-0 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 active:scale-95 transition"
         >
           <IcoEye className="h-3.5 w-3.5" /> View
@@ -292,18 +297,23 @@ function ApprovedOwnerCard({ owner, onView }) {
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Phone</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{owner.phone_no || "—"}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Farm ID</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{pond.farm_id ?? "—"}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Location</p>
-          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{owner.district_name || "—"}</p>
-          <p className="text-[11px] text-[var(--rv-muted)]">{owner.state_name || ""}</p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Species ID</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">{pond.species_id ?? "—"}</p>
         </div>
-        <div className="col-span-2">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Verified On</p>
+        <div>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Area</p>
+          <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)]">
+            {pond.area ? `${pond.area} ac` : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Approved On</p>
           <p className="mt-0.5 text-xs text-[var(--rv-muted)]">
-            {owner.updated_at ? new Date(owner.updated_at).toLocaleDateString() : "—"}
+            {pond.updated_at ? new Date(pond.updated_at).toLocaleDateString() : "—"}
           </p>
         </div>
       </div>
@@ -314,32 +324,24 @@ function ApprovedOwnerCard({ owner, onView }) {
 /* ══════════════════════════════════════════
    DETAIL MODAL
 ══════════════════════════════════════════ */
-function DetailRow({ label, value, mono }) {
+function DetailRow({ label, value }) {
   return (
     <div>
       <p className="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">{label}</p>
-      <p className={`mt-0.5 text-sm font-medium text-[var(--rv-ink)] break-words ${mono ? "font-mono" : ""}`}>
-        {value ?? "—"}
-      </p>
+      <p className="mt-0.5 text-sm font-medium text-[var(--rv-ink)] break-words">{value ?? "—"}</p>
     </div>
   );
 }
 
-function OwnerDetailModal({ owner, onClose, onApprove, onReject, isUpdating }) {
-  const [note, setNote] = useState("");
-
+function PondDetailModal({ pond, onClose }) {
   useEffect(() => {
-    if (!owner) return;
-    setNote("");
+    if (!pond) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
-  }, [owner]);
+  }, [pond]);
 
-  if (!owner) return null;
-
-  const status = normStatus(owner.verification_status);
-  const isPending = status === "pending";
+  if (!pond) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
@@ -354,17 +356,13 @@ function OwnerDetailModal({ owner, onClose, onApprove, onReject, isUpdating }) {
         <div className="flex items-start gap-3 border-b border-slate-100 px-5 py-4 shrink-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
                style={{ background: "var(--rv-accent)" }}>
-            {owner.profile_picture_url ? (
-              <img src={owner.profile_picture_url} alt={owner.username} className="h-10 w-10 rounded-xl object-cover" />
-            ) : (
-              <IcoUser className="h-5 w-5" />
-            )}
+            <IcoPond className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-[var(--rv-ink)]">{owner.username || "—"}</p>
+            <p className="truncate font-semibold text-[var(--rv-ink)]">{pond.name}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              {owner.owner_id && <OwnerCode code={owner.owner_id} />}
-              <StatusBadge status={normStatus(owner.verification_status)} />
+              <PondCode code={pond.pond_code} id={pond.id} />
+              <StatusBadge status={pond.status} />
             </div>
           </div>
           <button onClick={onClose}
@@ -373,49 +371,43 @@ function OwnerDetailModal({ owner, onClose, onApprove, onReject, isUpdating }) {
           </button>
         </div>
 
-        {/* body */}
+        {/* scrollable body */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 space-y-6">
 
-          {/* Personal info */}
+          {/* Identity */}
           <section>
             <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Personal Information
+              Pond Identity
             </p>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <DetailRow label="Full Name"  value={owner.username} />
-              <DetailRow label="Owner ID"   value={owner.owner_id} mono />
-              <DetailRow label="User ID"    value={owner.id} />
-              <DetailRow label="Phone"      value={owner.phone_no} />
-              <DetailRow label="Address"    value={owner.address} />
-              <DetailRow label="Type"       value={owner.rootverse_type} />
+              <DetailRow label="Pond Name"  value={pond.name} />
+              <DetailRow label="Pond Code"  value={pond.pond_code} />
+              <DetailRow label="Pond ID"    value={pond.id} />
+              <DetailRow label="Farm ID"    value={pond.farm_id} />
+              <DetailRow label="Species ID" value={pond.species_id} />
+              <DetailRow label="Status"     value={pond.status} />
             </div>
           </section>
 
-          {/* Location */}
+          {/* Details */}
           <section>
             <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Location
+              Pond Details
             </p>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <DetailRow label="District"  value={owner.district_name} />
-              <DetailRow label="State"     value={owner.state_name} />
-              <DetailRow label="Location"  value={owner.location_name} />
+              <DetailRow label="Area" value={pond.area ? `${pond.area} acres` : null} />
+              <DetailRow label="Image Key" value={pond.image_key} />
             </div>
           </section>
 
-          {/* Documents */}
-          {(owner.docs?.length > 0 || owner.documents?.length > 0) && (
+          {/* Image */}
+          {pond.image_url && (
             <section>
               <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-                Documents
+                Pond Image
               </p>
-              <div className="flex flex-wrap gap-2">
-                {(owner.docs || owner.documents || []).map((doc, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-                    <IcoDoc className="h-3.5 w-3.5 text-slate-500" />
-                    {typeof doc === "string" ? doc : doc.name || `Document ${i + 1}`}
-                  </span>
-                ))}
+              <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200 bg-slate-50 max-h-60 flex items-center justify-center">
+                <img src={pond.image_url} alt="Pond" className="w-full object-cover" />
               </div>
             </section>
           )}
@@ -426,58 +418,18 @@ function OwnerDetailModal({ owner, onClose, onApprove, onReject, isUpdating }) {
               Timestamps
             </p>
             <div className="grid grid-cols-2 gap-4">
-              <DetailRow label="Submitted" value={owner.created_at ? new Date(owner.created_at).toLocaleString() : owner.submittedAt} />
-              <DetailRow label="Updated"   value={owner.updated_at ? new Date(owner.updated_at).toLocaleString() : null} />
+              <DetailRow label="Created" value={pond.created_at ? new Date(pond.created_at).toLocaleString() : null} />
+              <DetailRow label="Updated" value={pond.updated_at ? new Date(pond.updated_at).toLocaleString() : null} />
             </div>
           </section>
-
-          {/* Admin note — only for pending */}
-          {isPending && (
-            <section>
-              <p className="mb-2 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-                Admin Note (optional)
-              </p>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Reason for approval or rejection…"
-                rows={3}
-                className="w-full rounded-2xl bg-slate-50 p-3 text-sm text-slate-800 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--rv-accent)] transition resize-none"
-              />
-            </section>
-          )}
         </div>
 
-        {/* footer actions */}
+        {/* footer */}
         <div className="shrink-0 border-t border-slate-100 px-5 py-4 bg-slate-50/60">
-          {isPending ? (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                onClick={() => { onApprove(owner); onClose(); }}
-                disabled={isUpdating}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-60 active:scale-[0.98]"
-              >
-                {isUpdating ? <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <IcoCheck className="h-4 w-4" />}
-                Approve Owner
-              </button>
-              <button
-                onClick={() => { onReject(owner); onClose(); }}
-                disabled={isUpdating}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition disabled:opacity-60 active:scale-[0.98]"
-              >
-                <IcoX className="h-4 w-4" /> Reject Owner
-              </button>
-              <button onClick={onClose}
-                      className="sm:w-auto rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition active:scale-[0.98]">
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button onClick={onClose}
-                    className="w-full rounded-xl bg-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition active:scale-[0.98]">
-              Close
-            </button>
-          )}
+          <button onClick={onClose}
+                  className="w-full rounded-xl bg-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition active:scale-[0.98]">
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -545,44 +497,45 @@ function EmptyState({ icon, title, sub }) {
 /* ══════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════ */
-export default function OwnerApproval() {
+export default function PondApproval() {
   const dispatch = useDispatch();
 
-  const pendingOwners  = useSelector(selectPendingOwners);
-  const approvedOwners = useSelector(selectApprovedOwners);
-  const loading        = useSelector(selectOwnersLoading);
-  const error          = useSelector(selectOwnersError);
-  const updatingMap    = useSelector((s) => s.aquaOwnerApproval?.updating ?? {});
-  const updateErrMap   = useSelector((s) => s.aquaOwnerApproval?.updateError ?? {});
+  const pendingPonds  = useSelector(selectPendingPonds);
+  const approvedPonds = useSelector(selectApprovedPonds);
+  const loading       = useSelector(selectPondsLoading);
+  const error         = useSelector(selectPondsError);
+  const updatingMap   = useSelector((s) => s.pondApproval.updating);
+  const updateErrMap  = useSelector((s) => s.pondApproval.updateError);
 
-  const [viewOwner,  setViewOwner]  = useState(null);
-  const [pendingQ,   setPendingQ]   = useState("");
-  const [approvedQ,  setApprovedQ]  = useState("");
+  const [viewPond,  setViewPond]  = useState(null);
+  const [pendingQ,  setPendingQ]  = useState("");
+  const [approvedQ, setApprovedQ] = useState("");
 
-  useEffect(() => { dispatch(fetchAllOwners()); }, [dispatch]);
+  useEffect(() => { dispatch(fetchAllPonds()); }, [dispatch]);
 
-  const handleApprove = (owner) => dispatch(approveOwner({ id: owner.id }));
-  const handleReject  = (owner) => dispatch(rejectOwner({ id: owner.id }));
+  const handleApprove = (pond) => dispatch(approvePond({ id: pond.id, pond }));
+  const handleReject  = (pond) => dispatch(rejectPond({ id: pond.id, pond }));
 
-  function filterOwners(list, q) {
+  function filterPonds(list, q) {
     const qq = q.trim().toLowerCase();
     if (!qq) return list;
-    return list.filter((o) =>
-      [o.username, o.owner_id, o.phone_no, o.address, o.district_name, o.state_name, o.location_name]
+    return list.filter((p) =>
+      [p.name, p.pond_code, String(p.farm_id ?? ""), String(p.species_id ?? "")]
         .filter(Boolean).join(" ").toLowerCase().includes(qq)
     );
   }
 
-  const visPending  = useMemo(() => filterOwners(pendingOwners,  pendingQ),  [pendingOwners,  pendingQ]);
-  const visApproved = useMemo(() => filterOwners(approvedOwners, approvedQ), [approvedOwners, approvedQ]);
+  const visPending  = useMemo(() => filterPonds(pendingPonds,  pendingQ),  [pendingPonds,  pendingQ]);
+  const visApproved = useMemo(() => filterPonds(approvedPonds, approvedQ), [approvedPonds, approvedQ]);
 
-  const pendingCols  = ["Owner", "Contact", "Location", "Submitted", "Status", ""];
-  const approvedCols = ["Owner Code", "Name", "Phone", "Location", "Approved On", ""];
+  /* ─── Desktop table columns ─── */
+  const pendingCols  = ["Pond Name", "Pond Code", "Farm ID", "Species ID", "Area", "Submitted", "Status", ""];
+  const approvedCols = ["Pond Code", "Pond Name", "Farm ID", "Species ID", "Area", "Approved On", ""];
 
   return (
-    <div className="rvOwnerApproval min-h-full">
+    <div className="rvPondApproval min-h-full">
       <style>{`
-        .rvOwnerApproval {
+        .rvPondApproval {
           --rv-accent: #25B7FF;
           --rv-bg: #EEF2F7;
           --rv-ink: #0F172A;
@@ -597,14 +550,14 @@ export default function OwnerApproval() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[var(--rv-ink)] sm:text-3xl">
-              Owner Approval
+              Pond Approval
             </h1>
             <p className="mt-1 text-sm text-[var(--rv-muted)]">
-              Review and approve aquaculture owner registrations
+              Review and approve pond registrations
             </p>
           </div>
           <button
-            onClick={() => dispatch(fetchAllOwners())}
+            onClick={() => dispatch(fetchAllPonds())}
             disabled={loading}
             className="inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition disabled:opacity-60 active:scale-95 shadow-sm"
           >
@@ -626,49 +579,49 @@ export default function OwnerApproval() {
 
         {/* ── Metrics ── */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <MetricCard label="Pending"  value={pendingOwners.length}  sub="Awaiting review"  accentValue />
-          <MetricCard label="Approved" value={approvedOwners.length} sub="Active owners" />
-          <MetricCard label="Total"    value={pendingOwners.length + approvedOwners.length} sub="All owners" />
+          <MetricCard label="Pending"  value={pendingPonds.length}  sub="Awaiting review"  accentValue />
+          <MetricCard label="Approved" value={approvedPonds.length} sub="Active ponds" />
+          <MetricCard label="Total"    value={pendingPonds.length + approvedPonds.length} sub="All ponds" />
         </div>
 
         {/* ══ PENDING SECTION ══ */}
         <Section
-          icon={<IcoUser className="h-5 w-5" />}
+          icon={<IcoPond className="h-5 w-5" />}
           title="Pending Approval"
-          sub="Tap status button or open detail to approve / reject"
-          count={pendingOwners.length}
+          sub="Tap status button to approve or reject"
+          count={pendingPonds.length}
           accentCount
           search={pendingQ}
           onSearch={setPendingQ}
-          searchPlaceholder="Search name, code, phone, district…"
+          searchPlaceholder="Search by name, code, farm ID…"
           footer={
-            <>Showing <strong className="text-[var(--rv-ink)]">{visPending.length}</strong> of <strong className="text-[var(--rv-ink)]">{pendingOwners.length}</strong> pending owners</>
+            <>Showing <strong className="text-[var(--rv-ink)]">{visPending.length}</strong> of <strong className="text-[var(--rv-ink)]">{pendingPonds.length}</strong> pending ponds</>
           }
         >
-          {loading && pendingOwners.length === 0 ? (
+          {loading && pendingPonds.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-[var(--rv-muted)]">
               <span className="h-8 w-8 rounded-full border-[3px] border-slate-200 border-t-[var(--rv-accent)] animate-spin" />
-              <span className="text-sm">Loading owners…</span>
+              <span className="text-sm">Loading ponds…</span>
             </div>
           ) : visPending.length === 0 ? (
             <EmptyState
-              icon={<IcoUser className="h-7 w-7 text-slate-400" />}
-              title="No pending owners"
+              icon={<IcoPond className="h-7 w-7 text-slate-400" />}
+              title="No pending ponds"
               sub={pendingQ ? "Try a different search term." : "All caught up — nothing to review!"}
             />
           ) : (
             <>
               {/* Mobile cards */}
               <div className="flex flex-col gap-3 p-4 lg:hidden">
-                {visPending.map((owner) => (
-                  <PendingOwnerCard
-                    key={owner.id}
-                    owner={owner}
+                {visPending.map((pond) => (
+                  <PendingPondCard
+                    key={pond.id}
+                    pond={pond}
                     onApprove={handleApprove}
                     onReject={handleReject}
-                    onView={setViewOwner}
-                    isUpdating={!!updatingMap[owner.id]}
-                    rowErr={updateErrMap[owner.id]}
+                    onView={setViewPond}
+                    isUpdating={!!updatingMap[pond.id]}
+                    rowErr={updateErrMap[pond.id]}
                   />
                 ))}
               </div>
@@ -686,47 +639,40 @@ export default function OwnerApproval() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visPending.map((owner) => {
-                      const isUpdating = !!updatingMap[owner.id];
-                      const rowErr = updateErrMap[owner.id];
+                    {visPending.map((pond) => {
+                      const isUpdating = !!updatingMap[pond.id];
+                      const rowErr = updateErrMap[pond.id];
                       return (
-                        <React.Fragment key={owner.id}>
+                        <React.Fragment key={pond.id}>
                           <tr className="hover:bg-slate-50/70 transition">
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                              <p className="font-semibold text-[var(--rv-ink)]">{owner.username || "—"}</p>
-                              {owner.owner_id && <div className="mt-1"><OwnerCode code={owner.owner_id} /></div>}
+                              <p className="font-semibold text-[var(--rv-ink)]">{pond.name}</p>
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                              <div className="flex items-center gap-1.5 text-[var(--rv-ink)]">
-                                <IcoPhone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                {owner.phone_no || "—"}
-                              </div>
-                              {owner.address && (
-                                <div className="mt-1 text-xs text-[var(--rv-muted)] truncate max-w-[160px]">
-                                  {owner.address}
-                                </div>
-                              )}
+                              <PondCode code={pond.pond_code} id={pond.id} />
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                              <p className="text-[var(--rv-ink)]">{owner.district_name || "—"}</p>
-                              <p className="text-xs text-[var(--rv-muted)]">{owner.state_name || ""}</p>
+                              <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
+                                {pond.farm_id ?? "—"}
+                              </span>
+                            </td>
+                            <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
+                              <span className="rounded-lg bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-100">
+                                {pond.species_id ?? "—"}
+                              </span>
+                            </td>
+                            <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap">
+                              {pond.area ? `${pond.area} ac` : "—"}
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-xs text-[var(--rv-muted)]">
-                              {owner.created_at
-                                ? new Date(owner.created_at).toLocaleDateString()
-                                : owner.submittedAt || "—"}
+                              {pond.created_at ? new Date(pond.created_at).toLocaleDateString() : "—"}
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                              <StatusDropdown
-                                owner={owner}
-                                onApprove={handleApprove}
-                                onReject={handleReject}
-                                isUpdating={isUpdating}
-                              />
+                              <StatusDropdown pond={pond} onApprove={handleApprove} onReject={handleReject} isUpdating={isUpdating} />
                             </td>
                             <td className="border-b border-slate-100 px-4 py-3.5 align-middle text-right">
                               <button
-                                onClick={() => setViewOwner(owner)}
+                                onClick={() => setViewPond(pond)}
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-200 transition"
                               >
                                 <IcoEye className="h-3.5 w-3.5" /> View
@@ -735,7 +681,7 @@ export default function OwnerApproval() {
                           </tr>
                           {rowErr && (
                             <tr>
-                              <td colSpan={6} className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-600">
+                              <td colSpan={8} className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-600">
                                 ⚠ {rowErr}
                               </td>
                             </tr>
@@ -753,28 +699,28 @@ export default function OwnerApproval() {
         {/* ══ APPROVED SECTION ══ */}
         <Section
           icon={<IcoCheck className="h-5 w-5" />}
-          title="Approved Owners"
-          sub="All verified and active aquaculture owners"
-          count={approvedOwners.length}
+          title="Approved Ponds"
+          sub="All registered and active ponds"
+          count={approvedPonds.length}
           search={approvedQ}
           onSearch={setApprovedQ}
-          searchPlaceholder="Search approved owners…"
+          searchPlaceholder="Search approved ponds…"
           footer={
-            <>Showing <strong className="text-[var(--rv-ink)]">{visApproved.length}</strong> of <strong className="text-[var(--rv-ink)]">{approvedOwners.length}</strong> approved owners</>
+            <>Showing <strong className="text-[var(--rv-ink)]">{visApproved.length}</strong> of <strong className="text-[var(--rv-ink)]">{approvedPonds.length}</strong> approved ponds</>
           }
         >
           {visApproved.length === 0 ? (
             <EmptyState
               icon={<IcoCheck className="h-7 w-7 text-emerald-400" />}
-              title="No approved owners"
-              sub={approvedQ ? "Try a different search term." : "Approve a pending owner above."}
+              title="No approved ponds"
+              sub={approvedQ ? "Try a different search term." : "Approve a pending pond above."}
             />
           ) : (
             <>
               {/* Mobile cards */}
               <div className="flex flex-col gap-3 p-4 lg:hidden">
-                {visApproved.map((owner) => (
-                  <ApprovedOwnerCard key={owner.id} owner={owner} onView={setViewOwner} />
+                {visApproved.map((pond) => (
+                  <ApprovedPondCard key={pond.id} pond={pond} onView={setViewPond} />
                 ))}
               </div>
 
@@ -791,30 +737,33 @@ export default function OwnerApproval() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visApproved.map((owner) => (
-                      <tr key={owner.id} className="hover:bg-slate-50/70 transition">
+                    {visApproved.map((pond) => (
+                      <tr key={pond.id} className="hover:bg-slate-50/70 transition">
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                          <OwnerCode code={owner.owner_id || `ID-${owner.id}`} />
+                          <PondCode code={pond.pond_code} id={pond.id} />
                         </td>
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle font-semibold text-[var(--rv-ink)]">
-                          {owner.username || "—"}
+                          {pond.name}
                         </td>
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                          <div className="flex items-center gap-1.5 text-[var(--rv-ink)]">
-                            <IcoPhone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                            {owner.phone_no || "—"}
-                          </div>
+                          <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
+                            {pond.farm_id ?? "—"}
+                          </span>
                         </td>
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                          <p className="text-[var(--rv-ink)]">{owner.district_name || "—"}</p>
-                          <p className="text-xs text-[var(--rv-muted)]">{owner.state_name || ""}</p>
+                          <span className="rounded-lg bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-100">
+                            {pond.species_id ?? "—"}
+                          </span>
+                        </td>
+                        <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap">
+                          {pond.area ? `${pond.area} ac` : "—"}
                         </td>
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-xs text-[var(--rv-muted)]">
-                          {owner.updated_at ? new Date(owner.updated_at).toLocaleDateString() : "—"}
+                          {pond.updated_at ? new Date(pond.updated_at).toLocaleDateString() : "—"}
                         </td>
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle text-right">
                           <button
-                            onClick={() => setViewOwner(owner)}
+                            onClick={() => setViewPond(pond)}
                             className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 transition"
                           >
                             <IcoEye className="h-3.5 w-3.5" /> View
@@ -830,14 +779,7 @@ export default function OwnerApproval() {
         </Section>
       </div>
 
-      {/* Detail modal */}
-      <OwnerDetailModal
-        owner={viewOwner}
-        onClose={() => setViewOwner(null)}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        isUpdating={viewOwner ? !!updatingMap[viewOwner.id] : false}
-      />
+      <PondDetailModal pond={viewPond} onClose={() => setViewPond(null)} />
     </div>
   );
 }

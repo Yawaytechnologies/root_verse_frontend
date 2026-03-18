@@ -6,21 +6,19 @@ import brandLogo from "../../../assets/AquaLogo.jpg";
 import { LuLogs } from "react-icons/lu";
 import { IoWaterOutline } from "react-icons/io5";
 import { MdQrCodeScanner } from "react-icons/md";
+import { PiWavesLight } from "react-icons/pi";   // pond icon
 
 const nav = [
   { to: "/admin/aqua-culture/aqua-dashboard", label: "Dashboard", icon: FiHome },
 
   { type: "section", label: "Aquaculture Ops" },
 
-  { to: "/admin/aqua-culture/owner-approval", label: "Owner Approval", icon: FiUser },
-  {
-    to: "/admin/aqua-culture/farm-pond-approval",
-    label: "Farm & Pond Approval",
-    icon: IoWaterOutline,
-  },
-  { to: "/admin/aqua-culture/daily-log", label: "Daily Log", icon: LuLogs },
-  { to: "/admin/aqua-culture/aqua-harvest", label: "Harvest", icon: FiCheckCircle },
-  { to: "/admin/aqua-culture/aqua-crate", label: "Crate", icon: MdQrCodeScanner },
+  { to: "/admin/aqua-culture/owner-approval",     label: "Owner Approval", icon: FiUser },
+  { to: "/admin/aqua-culture/farm-pond-approval", label: "Farm Approval",  icon: IoWaterOutline },
+  { to: "/admin/aqua-culture/pond-approval",      label: "Pond Approval",  icon: PiWavesLight },   // ← new
+  { to: "/admin/aqua-culture/daily-log",          label: "Daily Log",      icon: LuLogs },
+  { to: "/admin/aqua-culture/aqua-harvest",       label: "Harvest",        icon: FiCheckCircle },
+  { to: "/admin/aqua-culture/aqua-crate",         label: "Crate",          icon: MdQrCodeScanner },
 ];
 
 export default function AdminSidebar({
@@ -34,7 +32,9 @@ export default function AdminSidebar({
       <div
         className={[
           "fixed inset-0 z-40 lg:hidden transition-opacity duration-200",
-          mobileOpen ? "opacity-100 pointer-events-auto bg-black/55" : "opacity-0 pointer-events-none",
+          mobileOpen
+            ? "opacity-100 pointer-events-auto bg-black/55"
+            : "opacity-0 pointer-events-none",
         ].join(" ")}
         onClick={onCloseMobile}
       />
@@ -71,7 +71,6 @@ export default function AdminSidebar({
 }
 
 function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
-  // ✅ Aquaculture accent (blue). Change to "#22d3ee" if you want more cyan.
   const ACCENT = "#38bdf8";
 
   return (
@@ -86,7 +85,12 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
       <div className="relative flex items-center justify-between border-b border-white/10 px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 ring-1 ring-white/10">
-            <img src={brandLogo} alt="RootVerse" className="h-full w-full object-cover" draggable={false} />
+            <img
+              src={brandLogo}
+              alt="RootVerse"
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
           </div>
 
           {!collapsed && (
