@@ -24,6 +24,11 @@ import ParticipantLayout from './components/admin/participantregistry/Participan
 import ParticipantDashboard from './components/admin/participantregistry/ParticipantDashboard.jsx';
 import QualityController from './components/admin/participantregistry/QualityController.jsx';
 import CratePackerCreate from './components/admin/participantregistry/CratePackerCreation.jsx';
+import TransportRegistration from './components/admin/participantregistry/TransportRegisteration.jsx';
+import TransportAssign from './components/admin/participantregistry/TransportAssign.jsx';
+import CrateReceiveStatus from './components/admin/participantregistry/CrateStatus.jsx';
+import OperatorRegistration from './components/admin/participantregistry/CollectionOperatorCreation.jsx';
+import CollectionCentreRegistration from './components/admin/participantregistry/CollectionCenterCreation.jsx';
 
 import QualityInspectionLogs from './components/admin/wildcapture/QualityInspectionLogs.jsx';
 import LandingQCPage from './components/admin/wildcapture/LandingQC.jsx';
@@ -140,6 +145,12 @@ export default function App() {
         <Route path='dashboard' element={<ParticipantDashboard />} />
         <Route path='quality-checker' element={<QualityController />} />
         <Route path='crate-packer' element={<CratePackerCreate />} />
+        <Route path='transport-assign' element={<TransportAssign />} />
+        <Route path='center-crate-status' element={<CrateReceiveStatus />} />
+        <Route path='collection-center-registration' element={<CollectionCentreRegistration />} />
+        <Route path='transport-registration' element={<TransportRegistration />} />
+        <Route path='center-operator-registeration' element={<OperatorRegistration />} />
+        
       </Route>
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
