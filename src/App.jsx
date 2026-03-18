@@ -37,7 +37,8 @@ import AquaLayout from './components/admin/aquaculture/AquaLayout';
 import AquaDashboard from './components/admin/aquaculture/AquaDashboard';
 import AquaRegister from './components/admin/aquaculture/AquaRegister';
 import OwnerApproval from './components/admin/aquaculture/OwnerApproval.jsx';
-import FarmPondApproval from './components/admin/aquaculture/FarmPondApproval.jsx';
+import FarmApproval from './components/admin/aquaculture/FarmApproval.jsx';
+import PondApproval from './components/admin/aquaculture/PondApproval.jsx';
 import DailyLog from './components/admin/aquaculture/DailyLogs.jsx';
 import AquaHarvest from "../src/components/admin/aquaculture/AquaHarvest.jsx"
 import AquaCrate from "../src/components/admin/aquaculture/AquaCrate.jsx"
@@ -119,7 +120,8 @@ export default function App() {
         <Route path='aqua-dashboard' element={<AquaDashboard />} />
         <Route path='ponds' element={<AquaRegister />} />
         <Route path='owner-approval' element={<OwnerApproval />} />
-        <Route path='farm-pond-approval' element={<FarmPondApproval />} />
+        <Route path='farm-pond-approval' element={<FarmApproval />} />
+        <Route path='pond-approval' element={<PondApproval />} />
         <Route path='daily-log' element={<DailyLog />} />
          <Route path='aqua-harvest' element={<AquaHarvest />} />
           <Route path='aqua-crate' element={<AquaCrate />} />
