@@ -1,9 +1,11 @@
-// src/redux/action/cratePackerActions.js
+// src/redux/action/cratepackerCreateActions.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   createCratePackerApi,
   fetchCratePackersApi,
   fetchLocationsApi,
+  updateCratePackerApi,
+  deleteCratePackerApi,
 } from "../../redux/services/cratepackerCreateServices";
 
 const errMsg = (err) =>
@@ -34,12 +36,34 @@ export const createCratePacker = createAsyncThunk(
   }
 );
 
-// ✅ NEW
 export const fetchLocations = createAsyncThunk(
   "cratePacker/fetchLocations",
   async (_, { rejectWithValue }) => {
     try {
       return await fetchLocationsApi();
+    } catch (err) {
+      return rejectWithValue(errMsg(err));
+    }
+  }
+);
+
+export const updateCratePacker = createAsyncThunk(
+  "cratePacker/update",
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      return await updateCratePackerApi(id, payload);
+    } catch (err) {
+      return rejectWithValue(errMsg(err));
+    }
+  }
+);
+
+export const deleteCratePacker = createAsyncThunk(
+  "cratePacker/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      await deleteCratePackerApi(id);
+      return { id };
     } catch (err) {
       return rejectWithValue(errMsg(err));
     }

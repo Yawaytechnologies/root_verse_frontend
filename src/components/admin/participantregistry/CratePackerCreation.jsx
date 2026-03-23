@@ -5,13 +5,15 @@ import {
   FiSave, FiRefreshCcw, FiAlertTriangle,
   FiUser, FiPhone, FiMail, FiMapPin,
   FiCalendar, FiHome, FiChevronDown, FiBox,
-  FiSearch, FiEye, FiX,
+  FiSearch, FiEye, FiX, FiEdit2, FiTrash2,
 } from "react-icons/fi";
 import { MdOutlineInventory2 } from "react-icons/md";
 import {
   createCratePacker,
   fetchCratePackers,
   fetchLocations,
+  updateCratePacker,
+  deleteCratePacker,
 } from "../../../redux/action/cratepackerCreateActions";
 import {
   clearCratePackerCreateState,
@@ -23,6 +25,9 @@ import {
   selectLocations,
   selectLocationsLoading,
   selectLocationsError,
+  selectUpdatingById,
+  selectDeletingById,
+  selectUpdateError,
 } from "../../../redux/reducer/cratepackerCreateSlice";
 
 /* ── Theme ── */
@@ -252,10 +257,15 @@ export default function CratePackerCreate() {
   const locations     = useSelector(selectLocations);
   const locLoading    = useSelector(selectLocationsLoading);
   const locError      = useSelector(selectLocationsError);
+  const updatingById  = useSelector(selectUpdatingById) || {};
+  const deletingById  = useSelector(selectDeletingById) || {};
+  const updateError   = useSelector(selectUpdateError);
 
   const [form, setForm]               = useState(EMPTY_FORM);
   const [tableSearch, setTableSearch] = useState("");
   const [viewPacker, setViewPacker]   = useState(null);
+  const [editPacker, setEditPacker]   = useState(null);
+  const [editForm, setEditForm]       = useState(EMPTY_FORM);
 
   const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -322,6 +332,67 @@ export default function CratePackerCreate() {
       dispatch(fetchCratePackers());
     }
   };
+
+  const openEdit = (row) => {
+    setEditPacker(row);
+    setEditForm({
+      name:          row.name          || "",
+      phone:         row.phone         || "",
+      email:         row.email         || "",
+      address:       row.address       || "",
+      date_of_birth: row.date_of_birth || "",
+      location_id:   row.location_id   != null ? String(row.location_id) : "",
+    });
+  };
+
+  const closeEdit = () => { setEditPacker(null); setEditForm(EMPTY_FORM); };
+
+  const validateEdit = (f) => {
+    const name = f.name.trim();
+    if (!name) return "Full name is required";
+    if (!/^[A-Za-z\s.'-]+$/.test(name)) return "Name must contain only letters";
+    const phone = f.phone.trim();
+    if (!phone) return "Phone number is required";
+    if (!/^\d{10}$/.test(phone)) return "Phone must be exactly 10 digits";
+    const email = f.email.trim();
+    if (!email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return "Enter a valid email address";
+    if (!f.address.trim()) return "Address is required";
+    if (!f.date_of_birth.trim()) return "Date of birth is required";
+    if (!/^\d{2}-\d{2}-\d{4}$/.test(f.date_of_birth.trim())) return "DOB must be DD-MM-YYYY";
+    if (!f.location_id) return "Location is required";
+    return null;
+  };
+
+  const submitEdit = async (e) => {
+    e.preventDefault();
+    if (!editPacker?.id) return;
+    const err = validateEdit(editForm);
+    if (err) return alert(err);
+    const res = await dispatch(updateCratePacker({
+      id: editPacker.id,
+      payload: {
+        name:          editForm.name.trim(),
+        phone:         editForm.phone.trim(),
+        email:         editForm.email.trim(),
+        address:       editForm.address.trim(),
+        date_of_birth: editForm.date_of_birth.trim(),
+        location_id:   Number(editForm.location_id),
+      },
+    }));
+    if (res.meta.requestStatus === "fulfilled") {
+      closeEdit();
+      dispatch(fetchCratePackers());
+    }
+  };
+
+  const doDelete = async (row) => {
+    if (!row?.id) return;
+    if (!window.confirm(`Delete crate packer "${row.name}"?`)) return;
+    await dispatch(deleteCratePacker(row.id));
+  };
+
+  const setEditField = (k, v) => setEditForm(p => ({ ...p, [k]: v }));
 
   const locationOptions = useMemo(() =>
     (Array.isArray(locations) ? locations : []).map((l) => ({
@@ -515,12 +586,28 @@ export default function CratePackerCreate() {
                     <p className="text-xs text-stone-500 mt-1">{r.phone || "—"}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setViewPacker(r)}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
-                >
-                  <FiEye className="h-3.5 w-3.5" /> View
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setViewPacker(r)}
+                    className="shrink-0 flex items-center gap-1.5 rounded-xl bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
+                  >
+                    <FiEye className="h-3.5 w-3.5" /> View
+                  </button>
+                  <button
+                    onClick={() => openEdit(r)}
+                    className="shrink-0 flex items-center gap-1.5 rounded-xl bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
+                  >
+                    <FiEdit2 className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => doDelete(r)}
+                    disabled={!!deletingById[r.id]}
+                    className="shrink-0 flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-600 ring-1 ring-rose-200 hover:bg-rose-100 transition active:scale-95 disabled:opacity-50"
+                  >
+                    <FiTrash2 className="h-3.5 w-3.5" />
+                    {deletingById[r.id] ? "…" : "Delete"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -530,7 +617,7 @@ export default function CratePackerCreate() {
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
                 <tr style={{ background: "#FAFAF9" }}>
-                  {["#", "Packer", "Code", "Phone", "Location", "Status", ""].map(h => (
+                  {["#", "Packer", "Phone", "Location", "Status", ""].map(h => (
                     <th key={h}
                         className={`border-b border-stone-100 px-4 py-3 text-left text-[10px] font-bold tracking-[0.18em] text-stone-400 uppercase ${h === "" ? "text-right" : ""}`}>
                       {h}
@@ -541,7 +628,7 @@ export default function CratePackerCreate() {
               <tbody>
                 {listLoading ? (
                   <tr>
-                    <td colSpan={7} className="py-14 text-center">
+                    <td colSpan={6} className="py-14 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <span className="h-7 w-7 rounded-full border-[3px] border-stone-200 animate-spin"
                               style={{ borderTopColor: A }} />
@@ -551,7 +638,7 @@ export default function CratePackerCreate() {
                   </tr>
                 ) : filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-14 text-center">
+                    <td colSpan={6} className="py-14 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <div className="flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: `${A}15` }}>
                           <FiBox className="h-7 w-7" style={{ color: A }} />
@@ -583,12 +670,6 @@ export default function CratePackerCreate() {
                     </td>
 
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle whitespace-nowrap">
-                      {r.code
-                        ? <span className="font-mono text-xs bg-stone-100 px-2.5 py-1 rounded-lg text-stone-600 ring-1 ring-stone-200">{r.code}</span>
-                        : <span className="text-stone-300 text-xs">—</span>}
-                    </td>
-
-                    <td className="border-b border-stone-100 px-4 py-3.5 align-middle whitespace-nowrap">
                       <span className="flex items-center gap-1.5 text-stone-700 text-sm">
                         <FiPhone className="h-3.5 w-3.5 text-stone-400 shrink-0" />
                         {r.phone || "—"}
@@ -609,12 +690,32 @@ export default function CratePackerCreate() {
                     </td>
 
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle text-right">
-                      <button
-                        onClick={() => setViewPacker(r)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
-                      >
-                        <FiEye className="h-3.5 w-3.5" /> View
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setViewPacker(r)}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
+                          title="View"
+                        >
+                          <FiEye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => openEdit(r)}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95"
+                          title="Edit"
+                        >
+                          <FiEdit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => doDelete(r)}
+                          disabled={!!deletingById[r.id]}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-200 hover:bg-rose-100 transition active:scale-95 disabled:opacity-50"
+                          title="Delete"
+                        >
+                          {deletingById[r.id]
+                            ? <span className="h-3.5 w-3.5 rounded-full border-2 border-rose-300 border-t-rose-600 animate-spin" />
+                            : <FiTrash2 className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -636,6 +737,95 @@ export default function CratePackerCreate() {
           </div>
         </div>
       </div>
+
+      {/* ── Edit modal ── */}
+      {editPacker && (
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeEdit} />
+          <div className="relative z-10 flex flex-col h-full
+                          md:h-auto md:m-auto md:max-h-[90vh] md:w-full md:max-w-lg
+                          bg-white shadow-2xl md:rounded-2xl md:ring-1 md:ring-black/10 overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center gap-3 border-b border-stone-100 px-5 py-4 shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white shrink-0"
+                   style={{ background: A }}>
+                <FiEdit2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-stone-800">Edit Crate Packer</p>
+                <p className="text-xs text-stone-500 font-mono">PUT /api/crate-packer/{editPacker.id}</p>
+              </div>
+              <button onClick={closeEdit}
+                      className="ml-auto flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition">
+                <FiX className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={submitEdit} className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+              {updateError && (
+                <div className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200">
+                  <FiAlertTriangle className="h-4 w-4 shrink-0" />{updateError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <InputField label="Full Name" required value={editForm.name}
+                  onChange={v => setEditField("name", capWords(v))} placeholder="e.g. S. Karthik" icon={FiUser} />
+                <InputField label="Phone" required value={editForm.phone}
+                  onChange={v => setEditField("phone", v.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile" icon={FiPhone} />
+                <InputField label="Email" required value={editForm.email}
+                  onChange={v => setEditField("email", v)} placeholder="packer@email.com" icon={FiMail} />
+                <InputField label="Address" required value={editForm.address}
+                  onChange={v => setEditField("address", v)} placeholder="Street, City" icon={FiHome} />
+
+                {/* DOB with auto-dash */}
+                <div>
+                  <label className="block text-xs font-semibold text-stone-600 mb-1.5">
+                    Date of Birth <span style={{ color: A }}>*</span>
+                  </label>
+                  <div className="relative">
+                    <FiCalendar className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                    <input
+                      type="text"
+                      value={editForm.date_of_birth}
+                      onChange={(e) => setEditField("date_of_birth", autoFormatDOB(e.target.value))}
+                      placeholder="DD-MM-YYYY"
+                      maxLength={10}
+                      className="w-full h-10 rounded-xl bg-stone-50 pl-10 pr-4 text-sm font-medium text-stone-900 ring-1 ring-stone-200 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 transition"
+                      style={{ "--tw-ring-color": A }}
+                    />
+                  </div>
+                </div>
+
+                <LocationSelect
+                  value={editForm.location_id}
+                  onChange={v => setEditField("location_id", v)}
+                  options={locationOptions}
+                  loading={locLoading}
+                  error={locError}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={closeEdit}
+                        className="rounded-xl bg-stone-100 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-200 transition">
+                  Cancel
+                </button>
+                <button type="submit" disabled={!!updatingById[editPacker.id]}
+                        className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition active:scale-[0.97] disabled:opacity-60"
+                        style={{ background: A, boxShadow: "0 4px 14px rgba(217,119,6,0.28)" }}>
+                  {updatingById[editPacker.id]
+                    ? <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    : <FiSave className="h-4 w-4" />}
+                  {updatingById[editPacker.id] ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── Detail modal ── */}
       <PackerDetailModal
