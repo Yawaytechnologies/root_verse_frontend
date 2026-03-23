@@ -20,6 +20,7 @@ import {
   clearSearch,
   clearUpdateError,
   clearDistrictsAndLocations,
+  setSelected,
 } from "../../../redux/reducer/qualitycheckerSlice";
 
 /* ── Theme ── */
@@ -232,11 +233,10 @@ export default function QualityChecker() {
     await dispatch(deleteQualityCheckerThunk({ id: row.id }));
   };
 
-  const openRowView = async (row) => {
-    const code = pickCode(row);
+  const openRowView = (row) => {
     dispatch(clearSearch());
+    dispatch(setSelected(row));
     setOpenView(true);
-    if (code) await dispatch(fetchQualityCheckerByCodeThunk({ code }));
   };
 
   const searchByCode = async () => {

@@ -64,6 +64,10 @@ const qualityCheckerSlice = createSlice({
       state.districtsError = null;
       state.locationsError = null;
     },
+    setSelected(state, action) {
+      state.selected = action.payload;
+      state.searchError = null;
+    },
   },
   extraReducers: (b) => {
     b
@@ -200,7 +204,11 @@ const qualityCheckerSlice = createSlice({
       })
       .addCase(fetchDistrictsByStateThunk.fulfilled, (s, a) => {
         s.districtsLoading = false;
-        s.districts = Array.isArray(a.payload) ? a.payload : [];
+        const stateId = Number(a.meta.arg);
+        const all = Array.isArray(a.payload) ? a.payload : [];
+        s.districts = stateId
+          ? all.filter(d => Number(d.state_id ?? d.stateId) === stateId)
+          : all;
       })
       .addCase(fetchDistrictsByStateThunk.rejected, (s, a) => {
         s.districtsLoading = false;
@@ -215,7 +223,11 @@ const qualityCheckerSlice = createSlice({
       })
       .addCase(fetchLocationsByStateThunk.fulfilled, (s, a) => {
         s.locationsLoading = false;
-        s.locations = Array.isArray(a.payload) ? a.payload : [];
+        const stateId = Number(a.meta.arg);
+        const all = Array.isArray(a.payload) ? a.payload : [];
+        s.locations = stateId
+          ? all.filter(l => Number(l.state_id ?? l.stateId) === stateId)
+          : all;
       })
       .addCase(fetchLocationsByStateThunk.rejected, (s, a) => {
         s.locationsLoading = false;
@@ -229,6 +241,7 @@ export const {
   clearSearch,
   clearUpdateError,
   clearDistrictsAndLocations,
+  setSelected,
 } = qualityCheckerSlice.actions;
 
 export default qualityCheckerSlice.reducer;
