@@ -8,6 +8,9 @@ import {
   deleteQualityCheckerThunk,
   fetchStatesThunk,
   fetchDistrictsThunk,
+  fetchLocationsThunk,
+  fetchDistrictsByStateThunk,
+  fetchLocationsByStateThunk,
 } from "../action/qualitycheckerActions";
 
 const initialState = {
@@ -26,13 +29,17 @@ const initialState = {
   searchError: null,
   selected: null,
 
-  // ✅ master dropdown data
   states: [],
-  districts: [],
   statesLoading: false,
-  districtsLoading: false,
   statesError: null,
+
+  districts: [],
+  districtsLoading: false,
   districtsError: null,
+
+  locations: [],
+  locationsLoading: false,
+  locationsError: null,
 };
 
 const qualityCheckerSlice = createSlice({
@@ -50,6 +57,12 @@ const qualityCheckerSlice = createSlice({
     clearUpdateError(state, action) {
       const id = action.payload;
       if (id != null) delete state.updateErrorById[id];
+    },
+    clearDistrictsAndLocations(state) {
+      state.districts = [];
+      state.locations = [];
+      state.districtsError = null;
+      state.locationsError = null;
     },
   },
   extraReducers: (b) => {
@@ -109,7 +122,6 @@ const qualityCheckerSlice = createSlice({
       .addCase(updateQualityCheckerThunk.fulfilled, (s, a) => {
         const id = a.payload?.id;
         if (id != null) delete s.updatingById[id];
-
         const idx = s.list.findIndex((x) => x.id === id);
         if (idx !== -1) {
           s.list[idx] = { ...s.list[idx], ...(a.payload.updated || {}) };
@@ -152,7 +164,7 @@ const qualityCheckerSlice = createSlice({
         s.statesError = a.payload || "Failed to fetch states";
       })
 
-      // districts
+      // districts (all) — legacy
       .addCase(fetchDistrictsThunk.pending, (s) => {
         s.districtsLoading = true;
         s.districtsError = null;
@@ -164,11 +176,59 @@ const qualityCheckerSlice = createSlice({
       .addCase(fetchDistrictsThunk.rejected, (s, a) => {
         s.districtsLoading = false;
         s.districtsError = a.payload || "Failed to fetch districts";
+      })
+
+      // locations (all) — legacy
+      .addCase(fetchLocationsThunk.pending, (s) => {
+        s.locationsLoading = true;
+        s.locationsError = null;
+      })
+      .addCase(fetchLocationsThunk.fulfilled, (s, a) => {
+        s.locationsLoading = false;
+        s.locations = Array.isArray(a.payload) ? a.payload : [];
+      })
+      .addCase(fetchLocationsThunk.rejected, (s, a) => {
+        s.locationsLoading = false;
+        s.locationsError = a.payload || "Failed to fetch locations";
+      })
+
+      // districts by state
+      .addCase(fetchDistrictsByStateThunk.pending, (s) => {
+        s.districtsLoading = true;
+        s.districtsError = null;
+        s.districts = [];
+      })
+      .addCase(fetchDistrictsByStateThunk.fulfilled, (s, a) => {
+        s.districtsLoading = false;
+        s.districts = Array.isArray(a.payload) ? a.payload : [];
+      })
+      .addCase(fetchDistrictsByStateThunk.rejected, (s, a) => {
+        s.districtsLoading = false;
+        s.districtsError = a.payload || "Failed to fetch districts";
+      })
+
+      // locations by state
+      .addCase(fetchLocationsByStateThunk.pending, (s) => {
+        s.locationsLoading = true;
+        s.locationsError = null;
+        s.locations = [];
+      })
+      .addCase(fetchLocationsByStateThunk.fulfilled, (s, a) => {
+        s.locationsLoading = false;
+        s.locations = Array.isArray(a.payload) ? a.payload : [];
+      })
+      .addCase(fetchLocationsByStateThunk.rejected, (s, a) => {
+        s.locationsLoading = false;
+        s.locationsError = a.payload || "Failed to fetch locations";
       });
   },
 });
 
-export const { clearQualityCheckerError, clearSearch, clearUpdateError } =
-  qualityCheckerSlice.actions;
+export const {
+  clearQualityCheckerError,
+  clearSearch,
+  clearUpdateError,
+  clearDistrictsAndLocations,
+} = qualityCheckerSlice.actions;
 
 export default qualityCheckerSlice.reducer;
