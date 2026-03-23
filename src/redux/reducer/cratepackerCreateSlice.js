@@ -4,6 +4,8 @@ import {
   createCratePacker,
   fetchCratePackers,
   fetchLocations,
+  updateCratePacker,
+  deleteCratePacker,
 } from "../action/cratepackerCreateActions";
 
 const normalizeArray = (payload) => {
@@ -22,7 +24,11 @@ const initialState = {
   createError: null,
   created: null,
 
-  // ✅ locations
+  updatingById: {},
+  updateError: null,
+
+  deletingById: {},
+
   locations: [],
   locationsLoading: false,
   locationsError: null,
@@ -36,6 +42,7 @@ const cratePackerSlice = createSlice({
       state.createLoading = false;
       state.createError = null;
       state.created = null;
+      state.updateError = null;
     },
   },
   extraReducers: (builder) => {
@@ -63,7 +70,6 @@ const cratePackerSlice = createSlice({
       .addCase(createCratePacker.fulfilled, (state, action) => {
         state.createLoading = false;
         state.created = action.payload;
-
         const createdObj = action.payload?.data || action.payload;
         if (createdObj && typeof createdObj === "object") {
           state.items = [createdObj, ...state.items];
@@ -74,7 +80,43 @@ const cratePackerSlice = createSlice({
         state.createError = action.payload || "Failed to create";
       })
 
-      // ✅ locations
+      // update
+      .addCase(updateCratePacker.pending, (state, action) => {
+        const id = action.meta.arg?.id;
+        if (id != null) state.updatingById[id] = true;
+        state.updateError = null;
+      })
+      .addCase(updateCratePacker.fulfilled, (state, action) => {
+        const id = action.meta.arg?.id;
+        if (id != null) delete state.updatingById[id];
+        const updated = action.payload?.data || action.payload;
+        if (updated && typeof updated === "object") {
+          const idx = state.items.findIndex((x) => x.id === id);
+          if (idx !== -1) state.items[idx] = { ...state.items[idx], ...updated };
+        }
+      })
+      .addCase(updateCratePacker.rejected, (state, action) => {
+        const id = action.meta.arg?.id;
+        if (id != null) delete state.updatingById[id];
+        state.updateError = action.payload || "Update failed";
+      })
+
+      // delete
+      .addCase(deleteCratePacker.pending, (state, action) => {
+        const id = action.meta.arg;
+        if (id != null) state.deletingById[id] = true;
+      })
+      .addCase(deleteCratePacker.fulfilled, (state, action) => {
+        const id = action.payload?.id;
+        if (id != null) delete state.deletingById[id];
+        state.items = state.items.filter((x) => x.id !== id);
+      })
+      .addCase(deleteCratePacker.rejected, (state, action) => {
+        const id = action.meta.arg;
+        if (id != null) delete state.deletingById[id];
+      })
+
+      // locations
       .addCase(fetchLocations.pending, (state) => {
         state.locationsLoading = true;
         state.locationsError = null;
@@ -95,15 +137,15 @@ export const { clearCratePackerCreateState } = cratePackerSlice.actions;
 export default cratePackerSlice.reducer;
 
 // selectors
-export const selectCratePackers = (s) => s.cratePacker.items;
-export const selectCratePackerListLoading = (s) => s.cratePacker.listLoading;
-export const selectCratePackerListError = (s) => s.cratePacker.listError;
-
+export const selectCratePackers             = (s) => s.cratePacker.items;
+export const selectCratePackerListLoading   = (s) => s.cratePacker.listLoading;
+export const selectCratePackerListError     = (s) => s.cratePacker.listError;
 export const selectCratePackerCreateLoading = (s) => s.cratePacker.createLoading;
-export const selectCratePackerCreateError = (s) => s.cratePacker.createError;
-export const selectCratePackerCreated = (s) => s.cratePacker.created;
-
-// ✅ locations selectors
-export const selectLocations = (s) => s.cratePacker.locations;
-export const selectLocationsLoading = (s) => s.cratePacker.locationsLoading;
-export const selectLocationsError = (s) => s.cratePacker.locationsError;
+export const selectCratePackerCreateError   = (s) => s.cratePacker.createError;
+export const selectCratePackerCreated       = (s) => s.cratePacker.created;
+export const selectLocations                = (s) => s.cratePacker.locations;
+export const selectLocationsLoading         = (s) => s.cratePacker.locationsLoading;
+export const selectLocationsError           = (s) => s.cratePacker.locationsError;
+export const selectUpdatingById             = (s) => s.cratePacker.updatingById;
+export const selectDeletingById             = (s) => s.cratePacker.deletingById;
+export const selectUpdateError              = (s) => s.cratePacker.updateError;
