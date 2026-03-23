@@ -1,4 +1,4 @@
-// src/redux/services/qualityCheckerServices.js
+// src/redux/services/qualitycheckerServices.js
 const QC_BASE =
   import.meta.env.VITE_API_BASE_URL || "https://rootverse-backend-5qoo.onrender.com";
 
@@ -10,7 +10,6 @@ async function handle(res) {
   } catch {
     data = text;
   }
-
   if (!res.ok) {
     const msg =
       (data && (data.message || data.error)) || `Request failed (${res.status})`;
@@ -47,7 +46,6 @@ export async function createQualityChecker(payload) {
   return handle(res);
 }
 
-// ✅ EDIT (assumed REST)
 export async function updateQualityChecker(id, payload) {
   const res = await fetch(`${QC_BASE}/api/quality-checker/${id}`, {
     method: "PUT",
@@ -60,6 +58,30 @@ export async function updateQualityChecker(id, payload) {
 export async function deleteQualityChecker(id) {
   const res = await fetch(`${QC_BASE}/api/quality-checker/${id}`, {
     method: "DELETE",
+    headers: { Accept: "application/json" },
+  });
+  return handle(res);
+}
+
+export async function getAllLocations() {
+  const res = await fetch(`${QC_BASE}/api/locations/`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  return handle(res);
+}
+
+export async function getDistrictsByState(stateId) {
+  const res = await fetch(`${QC_BASE}/api/districts?state_id=${stateId}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  return handle(res);
+}
+
+export async function getLocationsByState(stateId) {
+  const res = await fetch(`${QC_BASE}/api/locations?state_id=${stateId}`, {
+    method: "GET",
     headers: { Accept: "application/json" },
   });
   return handle(res);

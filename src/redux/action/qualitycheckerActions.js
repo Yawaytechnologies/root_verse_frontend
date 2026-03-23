@@ -1,4 +1,4 @@
-// src/redux/action/qualityCheckerActions.js
+// src/redux/action/qualitycheckerActions.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   getAllQualityCheckers,
@@ -6,6 +6,9 @@ import {
   createQualityChecker,
   updateQualityChecker,
   deleteQualityChecker,
+  getAllLocations,
+  getDistrictsByState,
+  getLocationsByState,
 } from "../services/qualitycheckerServices";
 
 import { getAllStates, getAllDistricts } from "../services/locationServices";
@@ -14,6 +17,9 @@ function normalizeList(data) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.data)) return data.data;
   if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.locations)) return data.locations;
+  if (Array.isArray(data?.districts)) return data.districts;
+  if (Array.isArray(data?.results)) return data.results;
   return [];
 }
 
@@ -86,7 +92,6 @@ export const deleteQualityCheckerThunk = createAsyncThunk(
   }
 );
 
-// ✅ states + districts
 export const fetchStatesThunk = createAsyncThunk(
   "qualityChecker/fetchStates",
   async (_, { rejectWithValue }) => {
@@ -99,6 +104,7 @@ export const fetchStatesThunk = createAsyncThunk(
   }
 );
 
+// kept for any legacy usage
 export const fetchDistrictsThunk = createAsyncThunk(
   "qualityChecker/fetchDistricts",
   async (_, { rejectWithValue }) => {
@@ -107,6 +113,42 @@ export const fetchDistrictsThunk = createAsyncThunk(
       return normalizeList(data);
     } catch (err) {
       return rejectWithValue(err?.message || "Failed to fetch districts");
+    }
+  }
+);
+
+export const fetchLocationsThunk = createAsyncThunk(
+  "qualityChecker/fetchLocations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await getAllLocations();
+      return normalizeList(data);
+    } catch (err) {
+      return rejectWithValue(err?.message || "Failed to fetch locations");
+    }
+  }
+);
+
+export const fetchDistrictsByStateThunk = createAsyncThunk(
+  "qualityChecker/fetchDistrictsByState",
+  async (stateId, { rejectWithValue }) => {
+    try {
+      const data = await getDistrictsByState(stateId);
+      return normalizeList(data);
+    } catch (err) {
+      return rejectWithValue(err?.message || "Failed to fetch districts");
+    }
+  }
+);
+
+export const fetchLocationsByStateThunk = createAsyncThunk(
+  "qualityChecker/fetchLocationsByState",
+  async (stateId, { rejectWithValue }) => {
+    try {
+      const data = await getLocationsByState(stateId);
+      return normalizeList(data);
+    } catch (err) {
+      return rejectWithValue(err?.message || "Failed to fetch locations");
     }
   }
 );

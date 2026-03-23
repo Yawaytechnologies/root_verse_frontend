@@ -12,20 +12,31 @@ import {
   deleteQualityCheckerThunk,
   fetchQualityCheckerByCodeThunk,
   fetchStatesThunk,
-  fetchDistrictsThunk,
   updateQualityCheckerThunk,
+  fetchDistrictsByStateThunk,
+  fetchLocationsByStateThunk,
 } from "../../../redux/action/qualitycheckerActions";
-import { clearSearch, clearUpdateError } from "../../../redux/reducer/qualitycheckerSlice";
+import {
+  clearSearch,
+  clearUpdateError,
+  clearDistrictsAndLocations,
+} from "../../../redux/reducer/qualitycheckerSlice";
 
 /* ── Theme ── */
 const A = "#D97706";
 
-const EMPTY = { checker_name:"", checker_email:"", checker_phone:"", state_id:"", district_id:"", is_active:true };
+const EMPTY = {
+  checker_name: "",
+  checker_email: "",
+  checker_phone: "",
+  state_id: "",
+  district_id: "",
+  location_id: "",
+  is_active: true,
+};
 
 function pickCode(row)  { return row?.checker_code || row?.code || row?.qc_code || null; }
 function fmtStatus(v)   { return v ? "Active" : "Inactive"; }
-function getStateName(map, id) { return id == null ? "—" : map.get(Number(id)) || `#${id}`; }
-function getDistrictName(map, id) { return id == null ? "—" : map.get(Number(id)) || `#${id}`; }
 
 /* ── Shared atoms ── */
 function Field({ label, value, onChange, placeholder, required }) {
@@ -45,7 +56,7 @@ function Field({ label, value, onChange, placeholder, required }) {
   );
 }
 
-function Select({ label, value, onChange, options, loading, error, required }) {
+function Select({ label, value, onChange, options, loading, error, required, disabled }) {
   return (
     <div>
       <label className="block text-xs font-semibold text-stone-600 mb-1.5">
@@ -55,10 +66,11 @@ function Select({ label, value, onChange, options, loading, error, required }) {
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-10 rounded-xl bg-stone-50 px-4 pr-9 text-sm font-medium text-stone-900 ring-1 ring-stone-200 appearance-none focus:bg-white focus:outline-none focus:ring-2 transition"
+          disabled={disabled}
+          className="w-full h-10 rounded-xl bg-stone-50 px-4 pr-9 text-sm font-medium text-stone-900 ring-1 ring-stone-200 appearance-none focus:bg-white focus:outline-none focus:ring-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ "--tw-ring-color": A }}
         >
-          <option value="">{loading ? "Loading…" : `Select ${label}…`}</option>
+          <option value="">{loading ? "Loading…" : disabled ? `Select State first…` : `Select ${label}…`}</option>
           {(Array.isArray(options) ? options : []).filter(o => o?.value).map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
@@ -69,8 +81,6 @@ function Select({ label, value, onChange, options, loading, error, required }) {
     </div>
   );
 }
-
-// ── Drop-in replacement for StatusToggle in QualityChecker.jsx ──
 
 function StatusToggle({ checked, onChange }) {
   return (
@@ -114,63 +124,77 @@ export default function QualityChecker() {
   const {
     list = [], loading, error, creating,
     deletingById = {}, searching, searchError, selected,
-    states = [], districts = [], statesLoading, districtsLoading, statesError, districtsError,
+    states = [], statesLoading, statesError,
+    districts = [], districtsLoading, districtsError,
+    locations = [], locationsLoading, locationsError,
     updatingById = {}, updateErrorById = {},
   } = useSelector((s) => s.qualityChecker);
 
-  const [form, setForm]       = useState(EMPTY);
-  const [openView, setOpenView] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
+  const [form, setForm]           = useState(EMPTY);
+  const [openView, setOpenView]   = useState(false);
+  const [openEdit, setOpenEdit]   = useState(false);
   const [activeRow, setActiveRow] = useState(null);
-  const [editForm, setEditForm] = useState(EMPTY);
+  const [editForm, setEditForm]   = useState(EMPTY);
   const [codeSearch, setCodeSearch] = useState("");
 
   useEffect(() => {
     dispatch(fetchQualityCheckers());
     dispatch(fetchStatesThunk());
-    dispatch(fetchDistrictsThunk());
   }, [dispatch]);
 
   const rows = useMemo(() => (Array.isArray(list) ? list : []), [list]);
-
-  const statesMap = useMemo(() => {
-    const m = new Map();
-    (Array.isArray(states) ? states : []).forEach((s) => {
-      const id = s?.id ?? s?.state_id;
-      const name = s?.state_name ?? s?.name ?? s?.title;
-      if (id != null) m.set(Number(id), name || `#${id}`);
-    });
-    return m;
-  }, [states]);
-
-  const districtsMap = useMemo(() => {
-    const m = new Map();
-    (Array.isArray(districts) ? districts : []).forEach((d) => {
-      const id = d?.id ?? d?.district_id;
-      const name = d?.district_name ?? d?.name ?? d?.title;
-      if (id != null) m.set(Number(id), name || `#${id}`);
-    });
-    return m;
-  }, [districts]);
-
-  const districtsByState = useMemo(() => {
-    const sid = Number(form.state_id || 0);
-    const arr = Array.isArray(districts) ? districts : [];
-    return sid ? arr.filter(d => Number(d?.state_id ?? d?.stateId) === sid) : arr;
-  }, [districts, form.state_id]);
-
-  const editDistrictsByState = useMemo(() => {
-    const sid = Number(editForm.state_id || 0);
-    const arr = Array.isArray(districts) ? districts : [];
-    return sid ? arr.filter(d => Number(d?.state_id ?? d?.stateId) === sid) : arr;
-  }, [districts, editForm.state_id]);
 
   const stats = useMemo(() => ({
     total:  rows.length,
     active: rows.filter(x => x?.is_active === true).length,
   }), [rows]);
 
+  const stateOptions = useMemo(() =>
+    (Array.isArray(states) ? states : []).map(s => ({
+      value: String(s?.id ?? s?.state_id),
+      label: s?.state_name ?? s?.name ?? `#${s?.id ?? s?.state_id}`,
+    })),
+  [states]);
+
+  const districtOptions = useMemo(() =>
+    (Array.isArray(districts) ? districts : []).map(d => ({
+      value: String(d?.id ?? d?.district_id),
+      label: d?.district_name ?? d?.name ?? `#${d?.id ?? d?.district_id}`,
+    })),
+  [districts]);
+
+  const locationOptions = useMemo(() =>
+    (Array.isArray(locations) ? locations : []).map(l => ({
+      value: String(l?.id ?? l?.location_id),
+      label: l?.location_name ?? l?.name ?? `#${l?.id ?? l?.location_id}`,
+    })),
+  [locations]);
+
   const setField = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  /* state change — create form */
+  const handleCreateStateChange = (v) => {
+    setField("state_id", v);
+    setField("district_id", "");
+    setField("location_id", "");
+    if (v) {
+      dispatch(fetchDistrictsByStateThunk(v));
+      dispatch(fetchLocationsByStateThunk(v));
+    } else {
+      dispatch(clearDistrictsAndLocations());
+    }
+  };
+
+  /* state change — edit form */
+  const handleEditStateChange = (v) => {
+    setEditForm(p => ({ ...p, state_id: v, district_id: "", location_id: "" }));
+    if (v) {
+      dispatch(fetchDistrictsByStateThunk(v));
+      dispatch(fetchLocationsByStateThunk(v));
+    } else {
+      dispatch(clearDistrictsAndLocations());
+    }
+  };
 
   const validate = (f) => {
     if (!f.checker_name.trim())  return "Checker name required";
@@ -180,6 +204,7 @@ export default function QualityChecker() {
     if (!/^\d{7,15}$/.test(f.checker_phone.trim())) return "Phone must be digits (7–15)";
     if (!f.state_id)    return "State is required";
     if (!f.district_id) return "District is required";
+    if (!f.location_id) return "Location is required";
     return null;
   };
 
@@ -193,10 +218,12 @@ export default function QualityChecker() {
       checker_phone: form.checker_phone.trim(),
       state_id:      Number(form.state_id),
       district_id:   Number(form.district_id),
+      location_id:   Number(form.location_id),
       is_active:     !!form.is_active,
     }));
     dispatch(fetchQualityCheckers());
     setForm(EMPTY);
+    dispatch(clearDistrictsAndLocations());
   };
 
   const doDelete = async (row) => {
@@ -223,18 +250,30 @@ export default function QualityChecker() {
   const openEditModal = (row) => {
     setActiveRow(row);
     dispatch(clearUpdateError(row.id));
+    const sid = row.state_id ? String(row.state_id) : "";
     setEditForm({
       checker_name:  row.checker_name  || "",
       checker_email: row.checker_email || "",
       checker_phone: row.checker_phone || "",
-      state_id:      row.state_id ? String(row.state_id) : "",
+      state_id:      sid,
       district_id:   row.district_id ? String(row.district_id) : "",
+      location_id:   row.location_id  ? String(row.location_id)  : "",
       is_active:     row.is_active ?? true,
     });
+    // pre-load districts + locations for the row's state
+    if (sid) {
+      dispatch(fetchDistrictsByStateThunk(sid));
+      dispatch(fetchLocationsByStateThunk(sid));
+    }
     setOpenEdit(true);
   };
 
-  const closeEdit = () => { setOpenEdit(false); setActiveRow(null); setEditForm(EMPTY); };
+  const closeEdit = () => {
+    setOpenEdit(false);
+    setActiveRow(null);
+    setEditForm(EMPTY);
+    dispatch(clearDistrictsAndLocations());
+  };
 
   const submitEdit = async (e) => {
     e.preventDefault();
@@ -250,6 +289,7 @@ export default function QualityChecker() {
           checker_phone: editForm.checker_phone.trim(),
           state_id:      Number(editForm.state_id),
           district_id:   Number(editForm.district_id),
+          location_id:   Number(editForm.location_id),
           is_active:     !!editForm.is_active,
         },
       })).unwrap();
@@ -260,11 +300,6 @@ export default function QualityChecker() {
 
   const isUpdating = activeRow?.id ? !!updatingById[activeRow.id] : false;
   const updateErr  = activeRow?.id ? updateErrorById[activeRow.id] : null;
-
-  const stateOptions = (Array.isArray(states) ? states : []).map(s => ({
-    value: String(s?.id ?? s?.state_id),
-    label: s?.state_name ?? s?.name ?? `#${s?.id ?? s?.state_id}`,
-  }));
 
   /* ── Render ── */
   return (
@@ -292,7 +327,10 @@ export default function QualityChecker() {
             </div>
             <button
               type="button"
-              onClick={() => { dispatch(fetchQualityCheckers()); dispatch(fetchStatesThunk()); dispatch(fetchDistrictsThunk()); }}
+              onClick={() => {
+                dispatch(fetchQualityCheckers());
+                dispatch(fetchStatesThunk());
+              }}
               className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 ring-1 ring-stone-200 hover:bg-stone-50 transition shadow-sm"
             >
               <FiRefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -318,7 +356,6 @@ export default function QualityChecker() {
               </div>
               <div>
                 <p className="font-semibold text-stone-800">Create Quality Checker</p>
-                <p className="text-xs text-stone-500">POST <code className="font-mono">/api/quality-checker</code></p>
               </div>
             </div>
 
@@ -328,23 +365,28 @@ export default function QualityChecker() {
                 <Field label="Email"        value={form.checker_email} onChange={v => setField("checker_email", v)} required />
                 <Field label="Phone"        value={form.checker_phone} onChange={v => setField("checker_phone", v)} required />
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Select
-                    label="State" value={form.state_id} required
-                    onChange={v => { setField("state_id", v); setField("district_id", ""); }}
-                    loading={statesLoading} error={statesError}
-                    options={stateOptions}
-                  />
-                  <Select
-                    label="District" value={form.district_id} required
-                    onChange={v => setField("district_id", v)}
-                    loading={districtsLoading} error={districtsError}
-                    options={districtsByState.map(d => ({
-                      value: String(d?.id ?? d?.district_id),
-                      label: d?.district_name ?? d?.name ?? `#${d?.id ?? d?.district_id}`,
-                    }))}
-                  />
-                </div>
+                <Select
+                  label="State" value={form.state_id} required
+                  onChange={handleCreateStateChange}
+                  loading={statesLoading} error={statesError}
+                  options={stateOptions}
+                />
+
+                <Select
+                  label="District" value={form.district_id} required
+                  onChange={v => setField("district_id", v)}
+                  loading={districtsLoading} error={districtsError}
+                  options={districtOptions}
+                  disabled={!form.state_id}
+                />
+
+                <Select
+                  label="Location (Port)" value={form.location_id} required
+                  onChange={v => setField("location_id", v)}
+                  loading={locationsLoading} error={locationsError}
+                  options={locationOptions}
+                  disabled={!form.state_id}
+                />
               </div>
 
               <StatusToggle checked={!!form.is_active} onChange={v => setField("is_active", v)} />
@@ -407,6 +449,7 @@ export default function QualityChecker() {
 
         {/* ── Table ── */}
         <div className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm overflow-hidden">
+
           {/* Mobile cards */}
           <div className="lg:hidden divide-y divide-stone-100">
             {loading ? (
@@ -423,6 +466,7 @@ export default function QualityChecker() {
                       <p className="text-[11px] text-stone-400 mt-0.5 font-mono">{code ? `Code: ${code}` : `ID: ${r.id}`}</p>
                       <p className="text-sm text-stone-600 mt-2 truncate">{r.checker_email || "—"}</p>
                       <p className="text-sm text-stone-600 mt-1">{r.checker_phone || "—"}</p>
+                      <p className="text-sm text-stone-500 mt-1">{r.location_name || "—"}</p>
                       <div className="mt-2">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${r.is_active ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-stone-100 text-stone-500 ring-stone-200"}`}>
                           <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
@@ -455,16 +499,16 @@ export default function QualityChecker() {
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
                 <tr className="text-[10px] font-bold tracking-[0.16em] text-stone-400">
-                  {["Checker","Email","Phone","Status",""].map(h => (
-                    <th key={h} className={`border-b border-stone-100 px-5 py-3 text-left font-semibold ${h===""?"text-right":""}`}>{h}</th>
+                  {["Checker", "Email", "Phone", "Location", "Status", ""].map(h => (
+                    <th key={h} className={`border-b border-stone-100 px-5 py-3 text-left font-semibold ${h === "" ? "text-right" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="py-14 text-center text-sm text-stone-400">Loading…</td></tr>
+                  <tr><td colSpan={6} className="py-14 text-center text-sm text-stone-400">Loading…</td></tr>
                 ) : rows.length === 0 ? (
-                  <tr><td colSpan={5} className="py-14 text-center text-sm text-stone-400">No quality checkers found.</td></tr>
+                  <tr><td colSpan={6} className="py-14 text-center text-sm text-stone-400">No quality checkers found.</td></tr>
                 ) : rows.map(r => {
                   const code = pickCode(r);
                   return (
@@ -473,8 +517,9 @@ export default function QualityChecker() {
                         <p className="font-semibold text-stone-800 truncate">{r.checker_name || "—"}</p>
                         <p className="text-[11px] text-stone-400 font-mono mt-0.5">{code ? `Code: ${code}` : `ID: ${r.id}`}</p>
                       </td>
-                      <td className="border-b border-stone-100 px-5 py-3.5 align-middle text-stone-700 truncate max-w-[200px]">{r.checker_email || "—"}</td>
+                      <td className="border-b border-stone-100 px-5 py-3.5 align-middle text-stone-700 truncate max-w-[180px]">{r.checker_email || "—"}</td>
                       <td className="border-b border-stone-100 px-5 py-3.5 align-middle text-stone-700">{r.checker_phone || "—"}</td>
+                      <td className="border-b border-stone-100 px-5 py-3.5 align-middle text-stone-700">{r.location_name || "—"}</td>
                       <td className="border-b border-stone-100 px-5 py-3.5 align-middle">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${r.is_active ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-stone-100 text-stone-500 ring-stone-200"}`}>
                           <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
@@ -543,21 +588,22 @@ export default function QualityChecker() {
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <InfoBox label="Code"    value={selected?.checker_code || selected?.code || selected?.qc_code || "—"} />
-                    <InfoBox label="ID"      value={selected?.id} />
-                    <InfoBox label="Status"  value={fmtStatus(selected?.is_active)} />
+                    <InfoBox label="Code"   value={selected?.checker_code || selected?.code || selected?.qc_code || "—"} />
+                    <InfoBox label="ID"     value={selected?.id} />
+                    <InfoBox label="Status" value={fmtStatus(selected?.is_active)} />
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <InfoBox label="Name"    value={selected?.checker_name} />
-                    <InfoBox label="Email"   value={selected?.checker_email} />
-                    <InfoBox label="Phone"   value={selected?.checker_phone} />
+                    <InfoBox label="Name"  value={selected?.checker_name} />
+                    <InfoBox label="Email" value={selected?.checker_email} />
+                    <InfoBox label="Phone" value={selected?.checker_phone} />
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <InfoBox label="State"      value={getStateName(statesMap, selected?.state_id)} />
-                    <InfoBox label="District"   value={getDistrictName(districtsMap, selected?.district_id)} />
+                    <InfoBox label="State"    value={selected?.state_name} />
+                    <InfoBox label="District" value={selected?.district_name} />
+                    <InfoBox label="Location" value={selected?.location_name} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <InfoBox label="Created At" value={selected?.created_at ?? "—"} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <InfoBox label="Updated At" value={selected?.updated_at ?? "—"} />
                   </div>
                 </div>
@@ -608,22 +654,28 @@ export default function QualityChecker() {
                 <Field label="Email"        value={editForm.checker_email} onChange={v => setEditForm(p => ({ ...p, checker_email: v }))} required />
                 <Field label="Phone"        value={editForm.checker_phone} onChange={v => setEditForm(p => ({ ...p, checker_phone: v }))} required />
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Select
-                    label="State" value={editForm.state_id} required
-                    onChange={v => setEditForm(p => ({ ...p, state_id: v, district_id: "" }))}
-                    loading={statesLoading} error={statesError} options={stateOptions}
-                  />
-                  <Select
-                    label="District" value={editForm.district_id} required
-                    onChange={v => setEditForm(p => ({ ...p, district_id: v }))}
-                    loading={districtsLoading} error={districtsError}
-                    options={editDistrictsByState.map(d => ({
-                      value: String(d?.id ?? d?.district_id),
-                      label: d?.district_name ?? d?.name ?? `#${d?.id ?? d?.district_id}`,
-                    }))}
-                  />
-                </div>
+                <Select
+                  label="State" value={editForm.state_id} required
+                  onChange={handleEditStateChange}
+                  loading={statesLoading} error={statesError}
+                  options={stateOptions}
+                />
+
+                <Select
+                  label="District" value={editForm.district_id} required
+                  onChange={v => setEditForm(p => ({ ...p, district_id: v }))}
+                  loading={districtsLoading} error={districtsError}
+                  options={districtOptions}
+                  disabled={!editForm.state_id}
+                />
+
+                <Select
+                  label="Location (Port)" value={editForm.location_id} required
+                  onChange={v => setEditForm(p => ({ ...p, location_id: v }))}
+                  loading={locationsLoading} error={locationsError}
+                  options={locationOptions}
+                  disabled={!editForm.state_id}
+                />
               </div>
 
               <StatusToggle checked={!!editForm.is_active} onChange={v => setEditForm(p => ({ ...p, is_active: v }))} />
