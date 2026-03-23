@@ -38,6 +38,18 @@ const toDDMMYYYY = (input) => {
   return input;
 };
 
+/* Auto-format DD-MM-YYYY as user types digits */
+const autoFormatDOB = (raw) => {
+  // strip everything except digits
+  const digits = raw.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+};
+
+/* Capitalize each word */
+const capWords = (v) => v.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+
 const EMPTY_FORM = {
   name: "", phone: "", email: "",
   address: "", date_of_birth: "", location_id: "",
@@ -84,17 +96,12 @@ function LocationSelect({ value, onChange, options, loading, error }) {
           <option value="">{loading ? "Loading locations…" : "Select location…"}</option>
           {options.map((o) => (
             <option key={o.id} value={o.id}>
-              {o.label}{o.code ? ` (${o.code})` : ""} — ID: {o.id}
+              {o.label}{o.code ? ` (${o.code})` : ""}
             </option>
           ))}
         </select>
         <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
       </div>
-      {value && (
-        <p className="mt-1 text-[11px] text-stone-500">
-          Selected ID: <span className="font-semibold text-stone-700">{value}</span>
-        </p>
-      )}
       {error && <p className="mt-1 text-[11px] text-rose-600">{error}</p>}
     </div>
   );
@@ -129,7 +136,7 @@ function InfoRow({ label, value, icon: Icon }) {
 /* ═══════════════════════════════════
    DETAIL MODAL
 ═══════════════════════════════════ */
-function PackerDetailModal({ packer, onClose }) {
+function PackerDetailModal({ packer, locationName, onClose }) {
   useEffect(() => {
     if (!packer) return;
     const prev = document.body.style.overflow;
@@ -142,23 +149,22 @@ function PackerDetailModal({ packer, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-
-      {/* full-screen mobile, centered on md+ */}
       <div className="relative z-10 flex flex-col h-full
                       md:h-auto md:m-auto md:max-h-[90vh] md:w-full md:max-w-lg
                       bg-white shadow-2xl md:rounded-2xl md:ring-1 md:ring-black/10 overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-start gap-3 border-b border-stone-100 px-5 py-4 shrink-0">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white"
+        <div className="flex items-center gap-3 border-b border-stone-100 px-5 py-4 shrink-0"
+             style={{ background: `${A}10` }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-bold text-white"
                style={{ background: A }}>
             {(packer.name || "?")[0].toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-stone-900 truncate">{packer.name}</p>
+            <p className="font-bold text-stone-900 text-base truncate">{packer.name}</p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {packer.code && (
-                <span className="font-mono text-[11px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded-lg ring-1 ring-stone-200">
+                <span className="font-mono text-[11px] bg-white text-stone-600 px-2 py-0.5 rounded-lg ring-1 ring-stone-200">
                   {packer.code}
                 </span>
               )}
@@ -166,39 +172,68 @@ function PackerDetailModal({ packer, onClose }) {
             </div>
           </div>
           <button onClick={onClose}
-                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 ring-1 ring-stone-200 hover:bg-stone-200 transition active:scale-95">
+                  className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100 transition">
             <FiX className="h-5 w-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-2">
-          <InfoRow label="Full Name"    value={packer.name}          icon={FiUser} />
-          <InfoRow label="CP Code"      value={packer.code}          icon={FiBox} />
-          <InfoRow label="Phone"        value={packer.phone}         icon={FiPhone} />
-          <InfoRow label="Email"        value={packer.email}         icon={FiMail} />
-          <InfoRow label="Address"      value={packer.address}       icon={FiHome} />
-          <InfoRow label="Date of Birth" value={packer.date_of_birth} icon={FiCalendar} />
-          <InfoRow label="Location ID"  value={packer.location_id != null ? `Loc ${packer.location_id}` : null} icon={FiMapPin} />
-          <InfoRow label="Type"         value={packer.rootverse_type} icon={MdOutlineInventory2} />
-          <InfoRow label="Created At"
-            value={packer.created_at ? new Date(packer.created_at).toLocaleString() : null}
-            icon={FiCalendar}
-          />
-          <InfoRow label="Updated At"
-            value={packer.updated_at ? new Date(packer.updated_at).toLocaleString() : null}
-            icon={FiCalendar}
-          />
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-3">
+
+          {/* Identity */}
+          <p className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase">Identity</p>
+          <div className="grid grid-cols-2 gap-3">
+            <DetailBox label="Full Name"  value={packer.name}  icon={FiUser} />
+            <DetailBox label="CP Code"   value={packer.code}  icon={FiBox} mono />
+          </div>
+
+          {/* Contact */}
+          <p className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase pt-1">Contact</p>
+          <div className="grid grid-cols-2 gap-3">
+            <DetailBox label="Phone" value={packer.phone} icon={FiPhone} />
+            <DetailBox label="Email" value={packer.email} icon={FiMail} />
+          </div>
+
+          {/* Personal */}
+          <p className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase pt-1">Personal</p>
+          <div className="grid grid-cols-2 gap-3">
+            <DetailBox label="Date of Birth" value={packer.date_of_birth} icon={FiCalendar} />
+            <DetailBox label="Location"      value={locationName || (packer.location_id != null ? `Loc ${packer.location_id}` : "—")} icon={FiMapPin} />
+          </div>
+          <DetailBox label="Address" value={packer.address} icon={FiHome} fullWidth />
+
+          {/* System */}
+          <p className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase pt-1">System</p>
+          <div className="grid grid-cols-2 gap-3">
+            <DetailBox label="Type"       value={packer.rootverse_type} icon={MdOutlineInventory2} />
+            <DetailBox label="Status"     value={packer.status || "active"} icon={FiUser} />
+            <DetailBox label="Created At" value={packer.created_at ? new Date(packer.created_at).toLocaleString() : "—"} icon={FiCalendar} />
+            <DetailBox label="Updated At" value={packer.updated_at ? new Date(packer.updated_at).toLocaleString() : "—"} icon={FiCalendar} />
+          </div>
         </div>
 
         {/* Footer */}
         <div className="shrink-0 border-t border-stone-100 px-5 py-4 bg-stone-50/60">
           <button onClick={onClose}
-                  className="w-full rounded-xl bg-stone-200 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-300 transition active:scale-[0.98]">
+                  className="w-full rounded-xl bg-stone-200 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-300 transition">
             Close
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DetailBox({ label, value, icon: Icon, mono, fullWidth }) {
+  return (
+    <div className={`rounded-xl bg-stone-50 ring-1 ring-stone-200 px-3.5 py-3 ${fullWidth ? "col-span-2" : ""}`}>
+      <div className="flex items-center gap-1.5 mb-1">
+        {Icon && <Icon className="h-3.5 w-3.5 text-stone-400 shrink-0" />}
+        <p className="text-[10px] font-bold tracking-[0.16em] text-stone-400 uppercase">{label}</p>
+      </div>
+      <p className={`text-sm font-semibold text-stone-800 break-words ${mono ? "font-mono" : ""}`}>
+        {value || "—"}
+      </p>
     </div>
   );
 }
@@ -218,7 +253,7 @@ export default function CratePackerCreate() {
   const locLoading    = useSelector(selectLocationsLoading);
   const locError      = useSelector(selectLocationsError);
 
-  const [form, setForm]             = useState(EMPTY_FORM);
+  const [form, setForm]               = useState(EMPTY_FORM);
   const [tableSearch, setTableSearch] = useState("");
   const [viewPacker, setViewPacker]   = useState(null);
 
@@ -231,18 +266,40 @@ export default function CratePackerCreate() {
 
   useEffect(() => { return () => { dispatch(clearCratePackerCreateState()); }; }, [dispatch]);
 
+  /* ── Location lookup map ── */
+  const locationMap = useMemo(() => {
+    const m = new Map();
+    (Array.isArray(locations) ? locations : []).forEach((l) => {
+      const id = l?.id ?? l?.location_id;
+      const name = l?.location_name ?? l?.name ?? l?.location_code;
+      if (id != null) m.set(Number(id), name || `Loc ${id}`);
+    });
+    return m;
+  }, [locations]);
+
+  const getLocationName = (id) => (id != null ? locationMap.get(Number(id)) || `Loc ${id}` : "—");
+
   const validate = () => {
-    if (!form.name.trim())          return "Name is required";
-    if (!form.phone.trim())         return "Phone is required";
-    if (!/^\d{7,15}$/.test(form.phone.trim())) return "Phone must be 7–15 digits";
-    if (!form.email.trim())         return "Email is required";
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Invalid email";
-    if (!form.address.trim())       return "Address is required";
+    const name = form.name.trim();
+    if (!name) return "Full name is required";
+    if (name.length < 2) return "Name must be at least 2 characters";
+    if (!/^[A-Za-z\s.'-]+$/.test(name)) return "Name must contain only letters";
+
+    const phone = form.phone.trim();
+    if (!phone) return "Phone number is required";
+    if (!/^\d{10}$/.test(phone)) return "Phone must be exactly 10 digits";
+
+    const email = form.email.trim();
+    if (!email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return "Enter a valid email address";
+
+    if (!form.address.trim()) return "Address is required";
+
     if (!form.date_of_birth.trim()) return "Date of birth is required";
-    const dob = toDDMMYYYY(form.date_of_birth.trim());
-    if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) return "DOB format must be DD-MM-YYYY";
-    if (!form.location_id)          return "Location is required";
-    if (Number.isNaN(Number(form.location_id))) return "Invalid location";
+    if (!/^\d{2}-\d{2}-\d{4}$/.test(form.date_of_birth.trim())) return "DOB must be in DD-MM-YYYY format";
+
+    if (!form.location_id) return "Location is required";
+    if (Number.isNaN(Number(form.location_id))) return "Invalid location selected";
     return null;
   };
 
@@ -335,17 +392,35 @@ export default function CratePackerCreate() {
             </div>
             <div>
               <p className="font-semibold text-stone-800">Create Crate Packer</p>
-              <p className="text-xs text-stone-500">POST <code className="font-mono">/api/crate-packer</code></p>
             </div>
           </div>
 
           <form onSubmit={onSubmit} className="px-5 py-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <InputField label="Full Name"    required value={form.name}          onChange={v => setField("name", v)}          placeholder="e.g. S. Karthik"    icon={FiUser} />
-              <InputField label="Phone"        required value={form.phone}         onChange={v => setField("phone", v)}         placeholder="10-digit mobile"     icon={FiPhone} />
-              <InputField label="Email"        required value={form.email}         onChange={v => setField("email", v)}         placeholder="packer@email.com"    icon={FiMail} />
-              <InputField label="Date of Birth (DD-MM-YYYY)" required value={form.date_of_birth} onChange={v => setField("date_of_birth", v)} placeholder="21-02-2001" icon={FiCalendar} />
-              <InputField label="Address"      required value={form.address}       onChange={v => setField("address", v)}       placeholder="Street, City"        icon={FiHome} />
+              <InputField label="Full Name"    required value={form.name}    onChange={v => setField("name", capWords(v))}    placeholder="e.g. S. Karthik"  icon={FiUser} />
+              <InputField label="Phone"        required value={form.phone}   onChange={v => setField("phone", v.replace(/\D/g, "").slice(0, 10))}   placeholder="10-digit mobile"   icon={FiPhone} />
+              <InputField label="Email"        required value={form.email}   onChange={v => setField("email", v)}   placeholder="packer@email.com"  icon={FiMail} />
+
+              {/* DOB with auto-dash formatting */}
+              <div>
+                <label className="block text-xs font-semibold text-stone-600 mb-1.5">
+                  Date of Birth <span style={{ color: A }}>*</span>
+                </label>
+                <div className="relative">
+                  <FiCalendar className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={form.date_of_birth}
+                    onChange={(e) => setField("date_of_birth", autoFormatDOB(e.target.value))}
+                    placeholder="DD-MM-YYYY"
+                    maxLength={10}
+                    className="w-full h-10 rounded-xl bg-stone-50 pl-10 pr-4 text-sm font-medium text-stone-900 ring-1 ring-stone-200 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 transition"
+                    style={{ "--tw-ring-color": A }}
+                  />
+                </div>
+              </div>
+
+              <InputField label="Address" required value={form.address} onChange={v => setField("address", v)} placeholder="Street, City" icon={FiHome} />
               <LocationSelect
                 value={form.location_id}
                 onChange={v => setField("location_id", v)}
@@ -450,7 +525,7 @@ export default function CratePackerCreate() {
             ))}
           </div>
 
-          {/* ── Desktop table — compact, fits viewport ── */}
+          {/* ── Desktop table ── */}
           <div className="hidden lg:block">
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
@@ -493,12 +568,10 @@ export default function CratePackerCreate() {
                       className="group hover:bg-amber-50/30 transition-colors"
                       style={i % 2 === 1 ? { background: "#FAFAF9" } : {}}>
 
-                    {/* # */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle text-xs text-stone-400 font-mono w-10">
                       {i + 1}
                     </td>
 
-                    {/* Packer */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
@@ -509,16 +582,12 @@ export default function CratePackerCreate() {
                       </div>
                     </td>
 
-                    {/* Code */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle whitespace-nowrap">
                       {r.code
-                        ? <span className="font-mono text-xs bg-stone-100 px-2.5 py-1 rounded-lg text-stone-600 ring-1 ring-stone-200">
-                            {r.code}
-                          </span>
+                        ? <span className="font-mono text-xs bg-stone-100 px-2.5 py-1 rounded-lg text-stone-600 ring-1 ring-stone-200">{r.code}</span>
                         : <span className="text-stone-300 text-xs">—</span>}
                     </td>
 
-                    {/* Phone */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle whitespace-nowrap">
                       <span className="flex items-center gap-1.5 text-stone-700 text-sm">
                         <FiPhone className="h-3.5 w-3.5 text-stone-400 shrink-0" />
@@ -526,21 +595,19 @@ export default function CratePackerCreate() {
                       </span>
                     </td>
 
-                    {/* Location */}
+                    {/* Location — shows name instead of ID */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle whitespace-nowrap">
                       <span className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold"
                             style={{ background: `${A}15`, color: A }}>
                         <FiMapPin className="h-3.5 w-3.5" />
-                        {r.location_id != null ? `Loc ${r.location_id}` : "No loc"}
+                        {getLocationName(r.location_id)}
                       </span>
                     </td>
 
-                    {/* Status */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle">
                       <StatusBadge status={r.status} />
                     </td>
 
-                    {/* View */}
                     <td className="border-b border-stone-100 px-4 py-3.5 align-middle text-right">
                       <button
                         onClick={() => setViewPacker(r)}
@@ -568,11 +635,14 @@ export default function CratePackerCreate() {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* ── Detail modal ── */}
-      <PackerDetailModal packer={viewPacker} onClose={() => setViewPacker(null)} />
+      <PackerDetailModal
+        packer={viewPacker}
+        locationName={viewPacker ? getLocationName(viewPacker.location_id) : null}
+        onClose={() => setViewPacker(null)}
+      />
     </div>
   );
 }
