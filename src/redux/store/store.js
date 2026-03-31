@@ -14,9 +14,12 @@ import cratePackerReducer from "../reducer/cratepackerCreateSlice";
 import qcInspectionReducer from "../reducer/qcInspectionSlice";
 import farmReducer from "../reducer/farmapprovalSlice";            // ← new
 import pondReducer from "../reducer/pondApprovalSlice"; 
-import ownerApprovalReducer from "../reducer/aquaOwnerSlice"; 
+import ownerApprovalReducer from "../reducer/aquaOwnerSlice";
+import collectionCenterReducer from "../reducer/collectionCenterSlice";
+import authReducer from "../reducer/adminLoginSlice";
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     qr: qrReducer,
     owner: ownerReducer,
     trip: tripReducer,
@@ -31,6 +34,7 @@ export const store = configureStore({
     qcInspection: qcInspectionReducer,
     farmApproval: farmReducer,  
     pondApproval: pondReducer,
-    aquaOwnerApproval: ownerApprovalReducer,    
+    aquaOwnerApproval: ownerApprovalReducer,
+    collectionCenter: collectionCenterReducer,
   },
 });

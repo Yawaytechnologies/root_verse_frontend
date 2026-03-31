@@ -1,39 +1,96 @@
 // src/modules/admin/ui/AdminSidebar.jsx  (Participant Registry / PCC)
-import { NavLink, Link } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import {
-  FiHome,
-  FiDatabase,
-  FiBox,
-  FiX,
-  FiGrid,
-  FiTruck,
-  FiUser,
-  FiActivity,
+  FiHome, FiDatabase, FiBox, FiX, FiGrid,
+  FiTruck, FiUser, FiChevronDown,
 } from "react-icons/fi";
 import { MdStorefront } from "react-icons/md";
-import { TbQrcode } from "react-icons/tb";
 
 const ACCENT  = "#D97706";
 const BG      = "#18120A";
 const BG_LITE = "#261B0E";
 
-const nav = [
-  { to: "/admin/participant-registry/dashboard",                    label: "Dashboard",               icon: FiHome       },
+const BASE = "/admin/participant-registry";
+
+/* ─── Nav tree ───────────────────────────────────────────────
+   type "link"  → plain NavLink
+   type "group" → collapsible header + children
+──────────────────────────────────────────────────────────── */
+const NAV = [
+  {
+    type:  "link",
+    to:    `${BASE}/dashboard`,
+    label: "Dashboard",
+    icon:  FiHome,
+  },
 
   { type: "section", label: "Participant Registry" },
 
-  { to: "/admin/participant-registry/quality-checker",              label: "Quality Checker",         icon: FiDatabase   },
-  { to: "/admin/participant-registry/crate-packer",                 label: "Crate Packer",            icon: FiBox        },
-  { to: "/admin/participant-registry/transport-registration",       label: "Transport Registration",  icon: FiTruck      },
-  { to: "/admin/participant-registry/center-operator-registeration",label: "Operator Registration",   icon: FiUser       },
-  { to: "/admin/participant-registry/collection-center-registration",label: "Collection Centre",      icon: MdStorefront },
-  { to: "/admin/participant-registry/transport-assign",             label: "Crate Assign & Transport",icon: FiActivity   },
-  { to: "/admin/participant-registry/center-crate-status",          label: "Crate Receive Status",    icon: TbQrcode     },
+  {
+    type:  "group",
+    label: "Transport",
+    icon:  FiTruck,
+    children: [
+      { to: `${BASE}/transport-registration`, label: "Transport Create" },
+      { to: `${BASE}/transport-list`,         label: "Transport Listing" },
+      { to: `${BASE}/transport-assign`,       label: "Assign & Dispatch" },
+    ],
+  },
+
+  {
+    type:  "group",
+    label: "Operator",
+    icon:  FiUser,
+    children: [
+      { to: `${BASE}/center-operator-registeration`, label: "Operator Create" },
+      { to: `${BASE}/operator-list`,                 label: "Operator Listing" },
+    ],
+  },
+
+  {
+    type:  "group",
+    label: "Crate",
+    icon:  FiBox,
+    children: [
+      { to: `${BASE}/crate-packer`,       label: "Crate Create" },
+      { to: `${BASE}/crate-list`,         label: "Crate Listing" },
+      { to: `${BASE}/center-crate-status`,label: "Crate Receive Status" },
+    ],
+  },
+
+  {
+    type:  "group",
+    label: "Quality Checker",
+    icon:  FiDatabase,
+    children: [
+      { to: `${BASE}/quality-checker`,      label: "QC Create" },
+      { to: `${BASE}/quality-checker-list`, label: "QC Listing" },
+    ],
+  },
+
+  {
+    type:  "group",
+    label: "Collection Centre",
+    icon:  MdStorefront,
+    children: [
+      { to: `${BASE}/collection-center-registration`, label: "Centre Create" },
+      { to: `${BASE}/collection-center-list`,         label: "Centre Listing" },
+    ],
+  },
 ];
 
+/* ─── helpers ────────────────────────────────────────────── */
+function groupHasActive(children, pathname) {
+  return children.some(c => pathname.startsWith(c.to));
+}
+
+/* ════════════════════════════════════════════════════════════
+   Exported sidebar shell
+════════════════════════════════════════════════════════════ */
 export default function AdminSidebar({
-  collapsed = false,
-  mobileOpen = false,
+  collapsed    = false,
+  mobileOpen   = false,
   onCloseMobile = () => {},
 }) {
   return (
@@ -80,7 +137,24 @@ export default function AdminSidebar({
   );
 }
 
+/* ─── Inner content ──────────────────────────────────────── */
 function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
+  const { pathname } = useLocation();
+
+  // pre-open any group whose child is currently active
+  const initialOpen = NAV.reduce((acc, item) => {
+    if (item.type === "group" && groupHasActive(item.children, pathname)) {
+      acc[item.label] = true;
+    }
+    return acc;
+  }, {});
+
+  const [open, setOpen] = useState(initialOpen);
+
+  function toggleGroup(label) {
+    setOpen(prev => ({ ...prev, [label]: !prev[label] }));
+  }
+
   return (
     <div
       className="relative flex h-full w-full flex-col overflow-hidden"
@@ -135,73 +209,148 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
         )}
 
         <nav className="space-y-0.5">
-          {nav.map((item, idx) => {
+          {NAV.map((item, idx) => {
+
+            /* section divider */
             if (item.type === "section") {
-              return collapsed ? (
-                <div key={`s-${idx}`} className="my-3 mx-2 h-px bg-white/10" />
-              ) : (
-                <p
-                  key={`s-${idx}`}
-                  className="mt-5 mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/35"
+              return collapsed
+                ? <div key={`s-${idx}`} className="my-3 mx-2 h-px bg-white/10" />
+                : (
+                  <p key={`s-${idx}`} className="mt-5 mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
+                    {item.label}
+                  </p>
+                );
+            }
+
+            /* plain link (Dashboard) */
+            if (item.type === "link") {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    [
+                      "group relative flex items-center rounded-2xl transition-all duration-150 overflow-hidden",
+                      collapsed ? "h-12 w-12 mx-auto justify-center" : "h-11 w-full px-3 gap-3",
+                      isActive ? "text-white" : "text-white/55 hover:text-white/90",
+                    ].join(" ")
+                  }
+                  style={({ isActive }) =>
+                    isActive ? { background: `${ACCENT}22`, boxShadow: `0 0 0 1px ${ACCENT}44` } : undefined
+                  }
                 >
-                  {item.label}
-                </p>
+                  {({ isActive }) => (
+                    <>
+                      {isActive && !collapsed && (
+                        <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ background: ACCENT }} />
+                      )}
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors`}
+                        style={isActive ? { background: `${ACCENT}33` } : undefined}
+                      >
+                        <Icon className="h-[18px] w-[18px]" />
+                      </span>
+                      {!collapsed && (
+                        <span className={`truncate text-sm font-semibold ${isActive ? "text-white" : "text-white/65 group-hover:text-white"}`}>
+                          {item.label}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
               );
             }
 
-            const Icon = item.icon;
+            /* group (collapsible) */
+            if (item.type === "group") {
+              const Icon      = item.icon;
+              const isExpanded = !!open[item.label];
+              const hasActive  = groupHasActive(item.children, pathname);
 
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                title={collapsed ? item.label : undefined}
-                className={({ isActive }) =>
-                  [
-                    "group relative flex items-center rounded-2xl transition-all duration-150 overflow-hidden",
-                    collapsed ? "h-12 w-12 mx-auto justify-center" : "h-11 w-full px-3 gap-3",
-                    isActive ? "text-white" : "text-white/55 hover:text-white/90",
-                  ].join(" ")
-                }
-                style={({ isActive }) =>
-                  isActive
-                    ? { background: `${ACCENT}22`, boxShadow: `0 0 0 1px ${ACCENT}44` }
-                    : undefined
-                }
-              >
-                {({ isActive }) => (
-                  <>
+              return (
+                <div key={item.label}>
+
+                  {/* Group header button */}
+                  <button
+                    type="button"
+                    onClick={() => !collapsed && toggleGroup(item.label)}
+                    title={collapsed ? item.label : undefined}
+                    className={[
+                      "group relative flex items-center w-full rounded-2xl transition-all duration-150 overflow-hidden",
+                      collapsed ? "h-12 w-12 mx-auto justify-center" : "h-11 px-3 gap-3",
+                      hasActive ? "text-white" : "text-white/55 hover:text-white/90",
+                    ].join(" ")}
+                    style={hasActive ? { background: `${ACCENT}18`, boxShadow: `0 0 0 1px ${ACCENT}33` } : undefined}
+                  >
                     {/* Active left bar */}
-                    {isActive && !collapsed && (
-                      <span
-                        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
-                        style={{ background: ACCENT }}
-                      />
+                    {hasActive && !collapsed && (
+                      <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ background: ACCENT }} />
                     )}
 
-                    {/* Icon bubble */}
+                    {/* Icon */}
                     <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                        isActive ? "text-white" : "text-white/55 group-hover:text-white/90"
-                      }`}
-                      style={isActive ? { background: `${ACCENT}33` } : undefined}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors"
+                      style={hasActive ? { background: `${ACCENT}33` } : undefined}
                     >
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
 
                     {!collapsed && (
-                      <span
-                        className={`truncate text-sm font-semibold ${
-                          isActive ? "text-white" : "text-white/65 group-hover:text-white"
-                        }`}
-                      >
-                        {item.label}
-                      </span>
+                      <>
+                        <span className={`flex-1 truncate text-sm font-semibold text-left ${hasActive ? "text-white" : "text-white/65 group-hover:text-white"}`}>
+                          {item.label}
+                        </span>
+                        <FiChevronDown
+                          className="h-4 w-4 shrink-0 transition-transform duration-200"
+                          style={{
+                            transform:  isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                            color:      hasActive ? ACCENT : "rgba(255,255,255,0.3)",
+                          }}
+                        />
+                      </>
                     )}
-                  </>
-                )}
-              </NavLink>
-            );
+                  </button>
+
+                  {/* Children */}
+                  {!collapsed && isExpanded && (
+                    <div className="mt-0.5 ml-4 pl-3 border-l border-white/10 space-y-0.5 pb-1">
+                      {item.children.map(child => (
+                        <NavLink
+                          key={child.to}
+                          to={child.to}
+                          className={({ isActive }) =>
+                            [
+                              "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-all duration-150",
+                              isActive
+                                ? "font-semibold text-white"
+                                : "font-medium text-white/50 hover:text-white/85 hover:bg-white/5",
+                            ].join(" ")
+                          }
+                          style={({ isActive }) =>
+                            isActive ? { background: `${ACCENT}20`, color: "#fff" } : undefined
+                          }
+                        >
+                          {({ isActive }) => (
+                            <>
+                              {/* small dot indicator */}
+                              <span
+                                className="h-1.5 w-1.5 rounded-full shrink-0 transition-colors"
+                                style={{ background: isActive ? ACCENT : "rgba(255,255,255,0.2)" }}
+                              />
+                              <span className="truncate">{child.label}</span>
+                            </>
+                          )}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return null;
           })}
         </nav>
       </div>
