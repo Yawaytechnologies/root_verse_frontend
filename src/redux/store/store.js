@@ -16,6 +16,8 @@ import farmReducer from "../reducer/farmapprovalSlice";            // ← new
 import pondReducer from "../reducer/pondApprovalSlice"; 
 import ownerApprovalReducer from "../reducer/aquaOwnerSlice";
 import collectionCenterReducer from "../reducer/collectionCenterSlice";
+import ccOperatorReducer from "../reducer/ccOperatorSlice";
+import transportOperatorReducer from "../reducer/transportOperatorSlice";
 import authReducer from "../reducer/adminLoginSlice";
 export const store = configureStore({
   reducer: {
@@ -36,5 +38,7 @@ export const store = configureStore({
     pondApproval: pondReducer,
     aquaOwnerApproval: ownerApprovalReducer,
     collectionCenter: collectionCenterReducer,
+    ccOperator: ccOperatorReducer,
+    transportOperator: transportOperatorReducer,
   },
 });

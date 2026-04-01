@@ -26,27 +26,41 @@ const NAV = [
   },
 
   { type: "section", label: "Participant Registry" },
+   
+  {
+    type:  "group",
+    label: "Collection Centre",
+    icon:  MdStorefront,
+    children: [
+      { to: `${BASE}/collection-center-registration`, label: "Centre Create" },
+      { to: `${BASE}/collection-center-list`,         label: "Centre Listing" },
+      { to: `${BASE}/center-operator-registeration`, label: "Center Operator Create" },
+      { to: `${BASE}/center-operator-list`,                 label: "Center Operator Listing" },
+    ],
+  },
 
   {
     type:  "group",
     label: "Transport",
     icon:  FiTruck,
     children: [
-      { to: `${BASE}/transport-registration`, label: "Transport Create" },
-      { to: `${BASE}/transport-list`,         label: "Transport Listing" },
-      { to: `${BASE}/transport-assign`,       label: "Assign & Dispatch" },
+      { to: `${BASE}/transport-operator-registration`, label: "Transport Operator Create" },
+      { to: `${BASE}/transport-operator-list`, label: "Transport Operator List" },
+      // { to: `${BASE}/transport-registration`, label: "Transport Create" },
+      // { to: `${BASE}/transport-list`,         label: "Transport Listing" },
+      // { to: `${BASE}/transport-assign`,       label: "Assign & Dispatch" },
     ],
   },
 
-  {
-    type:  "group",
-    label: "Operator",
-    icon:  FiUser,
-    children: [
-      { to: `${BASE}/center-operator-registeration`, label: "Operator Create" },
-      { to: `${BASE}/operator-list`,                 label: "Operator Listing" },
-    ],
-  },
+  // {
+  //   type:  "group",
+  //   label: "Operator",
+  //   icon:  FiUser,
+  //   children: [
+  //     { to: `${BASE}/center-operator-registeration`, label: "Operator Create" },
+  //     { to: `${BASE}/operator-list`,                 label: "Operator Listing" },
+  //   ],
+  // },
 
   {
     type:  "group",
@@ -69,15 +83,7 @@ const NAV = [
     ],
   },
 
-  {
-    type:  "group",
-    label: "Collection Centre",
-    icon:  MdStorefront,
-    children: [
-      { to: `${BASE}/collection-center-registration`, label: "Centre Create" },
-      { to: `${BASE}/collection-center-list`,         label: "Centre Listing" },
-    ],
-  },
+  
 ];
 
 /* ─── helpers ────────────────────────────────────────────── */
