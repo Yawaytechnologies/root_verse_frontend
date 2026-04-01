@@ -31,6 +31,10 @@ import CrateReceiveStatus from './components/admin/participantregistry/CrateStat
 import OperatorRegistration from './components/admin/participantregistry/CollectionOperatorCreation.jsx';
 import CollectionCentreRegistration from './components/admin/participantregistry/CollectionCenterCreation.jsx';
 import CollectionCenterListing from './components/admin/participantregistry/CollectionCenterListing.jsx';
+import CollectionCentreOperatorCreation from './components/admin/participantregistry/CollectionCentreOperatorCreation.jsx';
+import TransportOperatorCreation from './components/admin/participantregistry/TransportOperatorCreation.jsx';
+import TransportOperatorList from './components/admin/participantregistry/TransportOperatorListing.jsx';
+import CollectionCentreOperatorListing from './components/admin/participantregistry/CollectionCenterOperatorList.jsx'
 
 import QualityInspectionLogs from './components/admin/wildcapture/QualityInspectionLogs.jsx';
 import LandingQCPage from './components/admin/wildcapture/LandingQC.jsx';
@@ -152,8 +156,10 @@ export default function App() {
         <Route path='center-crate-status' element={<CrateReceiveStatus />} />
         <Route path='collection-center-registration' element={<CollectionCentreRegistration />} />
         <Route path='collection-center-list' element={<CollectionCenterListing />} />
-        <Route path='transport-registration' element={<TransportRegistration />} />
-        <Route path='center-operator-registeration' element={<OperatorRegistration />} />
+        <Route path='transport-operator-registration' element={<TransportOperatorCreation />} />
+        <Route path='transport-operator-list' element={<TransportOperatorList />} />
+        <Route path='center-operator-registeration' element={<CollectionCentreOperatorCreation />} />
+        <Route path='center-operator-list' element={<CollectionCentreOperatorListing />} />
         
       </Route>
 
