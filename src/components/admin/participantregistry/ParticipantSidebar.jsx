@@ -67,8 +67,8 @@ const NAV = [
     label: "Crate",
     icon:  FiBox,
     children: [
-      { to: `${BASE}/crate-packer`,       label: "Crate Create" },
-      { to: `${BASE}/crate-list`,         label: "Crate Listing" },
+      { to: `${BASE}/crate-packer`,       label: "Crate Packer Create" },
+      { to: `${BASE}/crate-list`,         label: "Crate Packer Listing" },
       { to: `${BASE}/center-crate-status`,label: "Crate Receive Status" },
     ],
   },

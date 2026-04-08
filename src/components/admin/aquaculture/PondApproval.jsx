@@ -4,14 +4,18 @@
  * ─────────────────────────────────────────────
  * ✅ GET /api/ponds on mount
  * ✅ Pending table  → status dropdown → PUT /api/ponds/:id
- * ✅ Approved table → read-only
+ * ✅ Approved table → QR code per pond (generated on approval)
  * ✅ Detail modal   → full pond info popup
+ * ✅ QR modal       → full QR + all details + download PNG
  * ✅ Mobile-first: cards on mobile, table on lg+
  * ✅ Redux: pondSlice + pondActions + pondService
+ *
+ * Requires: npm install qrcode
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import QRCode from "qrcode";
 
 import { fetchAllPonds, approvePond, rejectPond } from "../../../redux/action/pondApprovalActions";
 import {
@@ -36,7 +40,6 @@ const IcoX       = (p) => <SvgIco d="M18 6 6 18M6 6l12 12" {...p} />;
 const IcoChevron = (p) => <SvgIco d="m6 9 6 6 6-6" {...p} />;
 const IcoRefresh = (p) => <SvgIco d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M3 16l2.26 2.26A9.75 9.75 0 0 0 12 21a9 9 0 0 0 9-9" {...p} />;
 const IcoSearch  = (p) => <SvgIco d="M21 21l-4.3-4.3M11 18A7 7 0 1 0 4 11a7 7 0 0 0 7 7Z" {...p} />;
-const IcoMap     = (p) => <SvgIco d="M12 21S5 13.5 5 9a7 7 0 0 1 14 0c0 4.5-7 12-7 12Z M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" {...p} />;
 const IcoPond    = (p) => (
   <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round"
        strokeLinejoin="round" stroke="currentColor" {...p}>
@@ -51,7 +54,19 @@ const IcoEye     = (p) => (
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
-const IcoFish    = (p) => <SvgIco d="M6.5 12C6.5 12 4 10 2 10c0 0 2 2 2 2s-2 2-2 2c2 0 4.5-2 4.5-2ZM6.5 12h11M22 8s-2 4-4 4-4-4-4-4M22 16s-2-4-4-4-4 4-4 4" {...p} />;
+const IcoQR = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round"
+       strokeLinejoin="round" stroke="currentColor" {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="3" height="3" />
+    <rect x="19" y="14" width="2" height="2" />
+    <rect x="14" y="19" width="2" height="2" />
+    <rect x="18" y="19" width="3" height="2" />
+  </svg>
+);
+const IcoDownload = (p) => <SvgIco d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" {...p} />;
 
 /* ══════════════════════════════════════════
    STATUS CONFIG
@@ -84,15 +99,48 @@ function PondCode({ code, id }) {
 }
 
 /* ══════════════════════════════════════════
+   QR GENERATION HELPER
+══════════════════════════════════════════ */
+async function generateQRDataUrl(pond) {
+  const fmt = (val) => (val !== null && val !== undefined && val !== "") ? String(val) : "N/A";
+  const fmtDate = (val) => val ? new Date(val).toLocaleString() : "N/A";
+
+  const payload = [
+    "=== POND DETAILS ===",
+    "",
+    "IDENTITY",
+    `Pond Name   : ${fmt(pond.name)}`,
+    `Pond Code   : ${fmt(pond.pond_code)}`,
+    `Pond ID     : ${fmt(pond.id)}`,
+    `Farm ID     : ${fmt(pond.farm_id)}`,
+    `Species ID  : ${fmt(pond.species_id)}`,
+    `Status      : ${fmt(pond.status)}`,
+    "",
+    "DETAILS",
+    `Area        : ${pond.area ? `${pond.area} acres` : "N/A"}`,
+    `Image Key   : ${fmt(pond.image_key)}`,
+    "",
+    "TIMESTAMPS",
+    `Created     : ${fmtDate(pond.created_at)}`,
+    `Updated     : ${fmtDate(pond.updated_at)}`,
+  ].join("\n");
+  return QRCode.toDataURL(payload, {
+    width: 400,
+    margin: 2,
+    color: { dark: "#0F172A", light: "#FFFFFF" },
+    errorCorrectionLevel: "M",
+  });
+}
+
+/* ══════════════════════════════════════════
    STATUS DROPDOWN  (fixed-position — escapes overflow parents)
 ══════════════════════════════════════════ */
 function StatusDropdown({ pond, onApprove, onReject, isUpdating }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos]   = useState({ top: 0, left: 0 });
-  const btnRef = useRef();
+  const btnRef  = useRef();
   const menuRef = useRef();
 
-  // close on outside click
   useEffect(() => {
     if (!open) return;
     const h = (e) => {
@@ -103,24 +151,25 @@ function StatusDropdown({ pond, onApprove, onReject, isUpdating }) {
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
 
-  // close on scroll/resize so menu doesn't float away
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);
-    return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
   }, [open]);
 
   function handleToggle() {
     if (!btnRef.current) return;
     const r = btnRef.current.getBoundingClientRect();
-    // open above the button so it never goes off-screen at the bottom
     setPos({ bottom: window.innerHeight - r.top + 6, left: r.left });
     setOpen((v) => !v);
   }
 
-  const m = STATUS_META[pond.status] ?? STATUS_META.pending;
+  const m        = STATUS_META[pond.status] ?? STATUS_META.pending;
   const isPending = pond.status === "pending";
 
   return (
@@ -277,7 +326,7 @@ function PendingPondCard({ pond, onApprove, onReject, onView, isUpdating, rowErr
 /* ══════════════════════════════════════════
    APPROVED POND CARD (mobile)
 ══════════════════════════════════════════ */
-function ApprovedPondCard({ pond, onView }) {
+function ApprovedPondCard({ pond, onView, onViewQR, qrReady }) {
   return (
     <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_2px_8px_rgba(15,23,42,0.06)] overflow-hidden">
       <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3 border-b border-slate-100">
@@ -311,10 +360,22 @@ function ApprovedPondCard({ pond, onView }) {
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">Approved On</p>
-          <p className="mt-0.5 text-xs text-[var(--rv-muted)]">
-            {pond.updated_at ? new Date(pond.updated_at).toLocaleDateString() : "—"}
-          </p>
+          <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">QR Code</p>
+          <div className="mt-0.5">
+            {qrReady ? (
+              <button
+                onClick={() => onViewQR(pond)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 active:scale-95 transition"
+              >
+                <IcoQR className="h-3.5 w-3.5" /> View QR
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                <span className="h-3 w-3 rounded-full border-2 border-slate-300 border-t-slate-500 animate-spin" />
+                Generating…
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -395,7 +456,7 @@ function PondDetailModal({ pond, onClose }) {
               Pond Details
             </p>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <DetailRow label="Area" value={pond.area ? `${pond.area} acres` : null} />
+              <DetailRow label="Area"      value={pond.area ? `${pond.area} acres` : null} />
               <DetailRow label="Image Key" value={pond.image_key} />
             </div>
           </section>
@@ -437,6 +498,129 @@ function PondDetailModal({ pond, onClose }) {
 }
 
 /* ══════════════════════════════════════════
+   QR MODAL
+══════════════════════════════════════════ */
+function QRModal({ pond, dataUrl, onClose }) {
+  useEffect(() => {
+    if (!pond) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [pond]);
+
+  if (!pond || !dataUrl) return null;
+
+  const handleDownload = () => {
+    const a = document.createElement("a");
+    a.download = `${pond.pond_code || `pond-${pond.id}`}-qr.png`;
+    a.href = dataUrl;
+    a.click();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative z-10 flex flex-col h-full
+                      md:h-auto md:m-auto md:max-h-[90vh] md:w-full md:max-w-lg
+                      bg-white shadow-2xl overflow-hidden
+                      md:rounded-2xl md:ring-1 md:ring-black/10">
+
+        {/* header */}
+        <div className="flex items-start gap-3 border-b border-slate-100 px-5 py-4 shrink-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
+               style={{ background: "var(--rv-accent)" }}>
+            <IcoQR className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-[var(--rv-ink)]">{pond.name}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <PondCode code={pond.pond_code} id={pond.id} />
+              <StatusBadge status="approved" />
+            </div>
+          </div>
+          <button onClick={onClose}
+                  className="shrink-0 rounded-xl bg-slate-100 p-2.5 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-200 transition active:scale-95">
+            <IcoX className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* scrollable body */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 space-y-5">
+
+          {/* QR image */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="rounded-2xl bg-white p-4 ring-2 ring-slate-200 shadow-lg">
+              <img
+                src={dataUrl}
+                alt={`QR code for ${pond.name}`}
+                className="w-52 h-52 block"
+              />
+            </div>
+            <p className="text-xs text-[var(--rv-muted)] text-center">
+              Scan with any QR reader to view all pond details
+            </p>
+          </div>
+
+          {/* Encoded details */}
+          <section>
+            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
+              Pond Identity
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <DetailRow label="Pond Name"  value={pond.name} />
+              <DetailRow label="Pond Code"  value={pond.pond_code} />
+              <DetailRow label="Pond ID"    value={pond.id} />
+              <DetailRow label="Farm ID"    value={pond.farm_id} />
+              <DetailRow label="Species ID" value={pond.species_id} />
+              <DetailRow label="Status"     value={pond.status} />
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
+              Pond Details
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <DetailRow label="Area"      value={pond.area ? `${pond.area} acres` : null} />
+              <DetailRow label="Image Key" value={pond.image_key} />
+            </div>
+          </section>
+
+          <section>
+            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
+              Timestamps
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <DetailRow label="Created" value={pond.created_at ? new Date(pond.created_at).toLocaleString() : null} />
+              <DetailRow label="Updated" value={pond.updated_at ? new Date(pond.updated_at).toLocaleString() : null} />
+            </div>
+          </section>
+        </div>
+
+        {/* footer */}
+        <div className="shrink-0 border-t border-slate-100 px-5 py-4 bg-slate-50/60 flex gap-3">
+          <button
+            onClick={handleDownload}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition active:scale-[0.98]"
+            style={{ background: "var(--rv-accent)" }}
+          >
+            <IcoDownload className="h-4 w-4" />
+            Download QR
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl bg-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition active:scale-[0.98]"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════
    SECTION WRAPPER
 ══════════════════════════════════════════ */
 function Section({ icon, title, sub, count, accentCount, search, onSearch, searchPlaceholder, children, footer }) {
@@ -453,8 +637,10 @@ function Section({ icon, title, sub, count, accentCount, search, onSearch, searc
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold text-[var(--rv-ink)]">{title}</span>
                 {count !== undefined && (
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold text-white ${!accentCount ? "bg-slate-400" : ""}`}
-                        style={accentCount ? { background: "var(--rv-accent)" } : undefined}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold text-white ${!accentCount ? "bg-slate-400" : ""}`}
+                    style={accentCount ? { background: "var(--rv-accent)" } : undefined}
+                  >
                     {count}
                   </span>
                 )}
@@ -507,11 +693,29 @@ export default function PondApproval() {
   const updatingMap   = useSelector((s) => s.pondApproval.updating);
   const updateErrMap  = useSelector((s) => s.pondApproval.updateError);
 
-  const [viewPond,  setViewPond]  = useState(null);
+  const [viewPond,  setViewPond]  = useState(null);   // detail modal
+  const [qrPond,   setQrPond]    = useState(null);    // QR modal
+  const [qrMap,    setQrMap]     = useState({});      // { [pond.id]: dataUrl }
   const [pendingQ,  setPendingQ]  = useState("");
   const [approvedQ, setApprovedQ] = useState("");
 
+  // ── Fetch on mount ──
   useEffect(() => { dispatch(fetchAllPonds()); }, [dispatch]);
+
+  // ── Generate QR for each approved pond (runs whenever approvedPonds changes) ──
+  useEffect(() => {
+    approvedPonds.forEach((pond) => {
+      if (qrMap[pond.id]) return; // already generated
+      generateQRDataUrl(pond)
+        .then((url) => {
+          setQrMap((prev) => ({ ...prev, [pond.id]: url }));
+        })
+        .catch((err) => {
+          console.error(`QR generation failed for pond ${pond.id}:`, err);
+        });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [approvedPonds]);
 
   const handleApprove = (pond) => dispatch(approvePond({ id: pond.id, pond }));
   const handleReject  = (pond) => dispatch(rejectPond({ id: pond.id, pond }));
@@ -530,7 +734,7 @@ export default function PondApproval() {
 
   /* ─── Desktop table columns ─── */
   const pendingCols  = ["Pond Name", "Pond Code", "Farm ID", "Species ID", "Area", "Submitted", "Status", ""];
-  const approvedCols = ["Pond Code", "Pond Name", "Farm ID", "Species ID", "Area", "Approved On", ""];
+  const approvedCols = ["Pond Code", "Pond Name", "Farm ID", "Species ID", "Area", "QR Code", ""];
 
   return (
     <div className="rvPondApproval min-h-full">
@@ -570,8 +774,10 @@ export default function PondApproval() {
         {error && (
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200">
             <span>⚠ {error}</span>
-            <button onClick={() => dispatch(clearError())}
-                    className="shrink-0 rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold hover:bg-rose-200 transition">
+            <button
+              onClick={() => dispatch(clearError())}
+              className="shrink-0 rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold hover:bg-rose-200 transition"
+            >
               Dismiss
             </button>
           </div>
@@ -641,7 +847,7 @@ export default function PondApproval() {
                   <tbody>
                     {visPending.map((pond) => {
                       const isUpdating = !!updatingMap[pond.id];
-                      const rowErr = updateErrMap[pond.id];
+                      const rowErr     = updateErrMap[pond.id];
                       return (
                         <React.Fragment key={pond.id}>
                           <tr className="hover:bg-slate-50/70 transition">
@@ -700,7 +906,7 @@ export default function PondApproval() {
         <Section
           icon={<IcoCheck className="h-5 w-5" />}
           title="Approved Ponds"
-          sub="All registered and active ponds"
+          sub="QR code generated per pond on approval"
           count={approvedPonds.length}
           search={approvedQ}
           onSearch={setApprovedQ}
@@ -720,7 +926,13 @@ export default function PondApproval() {
               {/* Mobile cards */}
               <div className="flex flex-col gap-3 p-4 lg:hidden">
                 {visApproved.map((pond) => (
-                  <ApprovedPondCard key={pond.id} pond={pond} onView={setViewPond} />
+                  <ApprovedPondCard
+                    key={pond.id}
+                    pond={pond}
+                    onView={setViewPond}
+                    onViewQR={setQrPond}
+                    qrReady={!!qrMap[pond.id]}
+                  />
                 ))}
               </div>
 
@@ -758,13 +970,29 @@ export default function PondApproval() {
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap">
                           {pond.area ? `${pond.area} ac` : "—"}
                         </td>
-                        <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-xs text-[var(--rv-muted)]">
-                          {pond.updated_at ? new Date(pond.updated_at).toLocaleDateString() : "—"}
+
+                        {/* QR Code column — replaces "Approved On" */}
+                        <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
+                          {qrMap[pond.id] ? (
+                            <button
+                              onClick={() => setQrPond(pond)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 active:scale-95 transition"
+                            >
+                              <IcoQR className="h-3.5 w-3.5" />
+                              View QR
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                              <span className="h-3 w-3 rounded-full border-2 border-slate-300 border-t-slate-500 animate-spin" />
+                              Generating…
+                            </span>
+                          )}
                         </td>
+
                         <td className="border-b border-slate-100 px-4 py-3.5 align-middle text-right">
                           <button
                             onClick={() => setViewPond(pond)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 transition"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-200 transition"
                           >
                             <IcoEye className="h-3.5 w-3.5" /> View
                           </button>
@@ -779,7 +1007,13 @@ export default function PondApproval() {
         </Section>
       </div>
 
+      {/* ── Modals ── */}
       <PondDetailModal pond={viewPond} onClose={() => setViewPond(null)} />
+      <QRModal
+        pond={qrPond}
+        dataUrl={qrMap[qrPond?.id]}
+        onClose={() => setQrPond(null)}
+      />
     </div>
   );
 }
