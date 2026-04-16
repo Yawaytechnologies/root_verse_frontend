@@ -8,8 +8,7 @@ import { initFromStorage, logout, selectAuthLoading, selectAuthError, selectIsAu
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const FONTS_URL =
-  "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600" +
-  "&family=Exo+2:wght@300;400;600&family=Share+Tech+Mono&display=swap";
+  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
 
 const FISH_COLORS = [
   { body: "0,200,180",  fin: "0,160,150"  },
@@ -59,9 +58,10 @@ const HUD = {
 };
 
 const FEATURES = [
-  { icon:"🦐", title:"Aquaculture Registry",  desc:"Ponds, farms, hatcheries & CoC actors." },
-  { icon:"🚢", title:"Wild Capture Tracking", desc:"Vessel IDs, catch zones & landing sites." },
-  { icon:"⛓",  title:"Blockchain Anchoring",  desc:"GS1, GDST anchoring & audit history."   },
+  { icon:"🚢", title:"Wild Capture",         desc:"Vessel tracking, catch zones & landing site management." },
+  { icon:"🌊", title:"Mariculture",          desc:"Seaweed & marine cultivation unit registry."            },
+  { icon:"🦐", title:"Aquaculture",          desc:"Land-based ponds, farms & hatchery oversight."          },
+  { icon:"⛓",  title:"Participant Registry", desc:"PCCs, processors, transport partners & cold stores."    },
 ];
 
 // ─── Canvas factories ─────────────────────────────────────────────────────────
@@ -103,29 +103,23 @@ const mkCaustic = (W, H) => ({
 
 function drawFish(ctx, f, t) {
   ctx.save();
-  ctx.translate(f.x, f.y);
-  ctx.scale(f.dir, 1);
-  ctx.globalAlpha = f.alpha;
+  ctx.translate(f.x, f.y); ctx.scale(f.dir, 1); ctx.globalAlpha = f.alpha;
   const wag = Math.sin(t*f.wSpd*60+f.wag)*f.wAmp;
   const { len: L, col } = f;
   const g = ctx.createRadialGradient(0,0,0,0,0,L*0.5);
-  g.addColorStop(0, `rgba(${col.body},0.9)`);
-  g.addColorStop(1, `rgba(${col.body},0.4)`);
-  ctx.beginPath(); ctx.ellipse(0,0,L*0.55,L*0.22,wag*0.3,0,Math.PI*2);
-  ctx.fillStyle = g; ctx.fill();
+  g.addColorStop(0, `rgba(${col.body},0.9)`); g.addColorStop(1, `rgba(${col.body},0.4)`);
+  ctx.beginPath(); ctx.ellipse(0,0,L*0.55,L*0.22,wag*0.3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
   ctx.beginPath(); ctx.moveTo(-L*0.5,wag*L*0.3); ctx.lineTo(-L*0.85,-L*0.28+wag*L*0.5); ctx.lineTo(-L*0.85,L*0.28+wag*L*0.5); ctx.closePath();
-  ctx.fillStyle = `rgba(${col.fin},0.6)`; ctx.fill();
+  ctx.fillStyle=`rgba(${col.fin},0.6)`; ctx.fill();
   ctx.beginPath(); ctx.moveTo(L*0.1,-L*0.2); ctx.quadraticCurveTo(0,-L*0.42,-L*0.2,-L*0.18); ctx.closePath();
-  ctx.fillStyle = `rgba(${col.fin},0.5)`; ctx.fill();
+  ctx.fillStyle=`rgba(${col.fin},0.5)`; ctx.fill();
   ctx.beginPath(); ctx.arc(L*0.32,-L*0.04,L*0.045,0,Math.PI*2); ctx.fillStyle="rgba(200,240,255,0.9)"; ctx.fill();
-  ctx.beginPath(); ctx.arc(L*0.33,-L*0.04,L*0.022,0,Math.PI*2); ctx.fillStyle="rgba(0,30,40,0.9)";    ctx.fill();
+  ctx.beginPath(); ctx.arc(L*0.33,-L*0.04,L*0.022,0,Math.PI*2); ctx.fillStyle="rgba(0,30,40,0.9)"; ctx.fill();
   ctx.restore();
 }
 
 function drawJelly(ctx, j, t) {
-  ctx.save();
-  ctx.translate(j.x, j.y);
-  ctx.globalAlpha = j.alpha;
+  ctx.save(); ctx.translate(j.x, j.y); ctx.globalAlpha = j.alpha;
   const r = j.r*(Math.sin(j.phase+t*j.pSpd*60)*0.2+0.9);
   const g = ctx.createRadialGradient(0,-r*0.2,0,0,0,r);
   g.addColorStop(0,"rgba(150,230,255,0.6)"); g.addColorStop(0.5,"rgba(80,200,230,0.3)"); g.addColorStop(1,"rgba(40,160,200,0.05)");
@@ -141,25 +135,21 @@ function drawJelly(ctx, j, t) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function OceanCanvas({ mousePos }) {
-  const cvs = useRef(null);
-  const st  = useRef(null);
-  const raf = useRef(null);
-  const mp  = useRef(mousePos);
+  const cvs=useRef(null), st=useRef(null), raf=useRef(null), mp=useRef(mousePos);
   useEffect(() => { mp.current = mousePos; }, [mousePos]);
-
   useEffect(() => {
-    const c = cvs.current, ctx = c.getContext("2d");
-    const W = () => c.width, H = () => c.height;
-    const resize = () => { c.width=window.innerWidth; c.height=window.innerHeight; };
-    resize(); window.addEventListener("resize", resize);
-    st.current = {
-      bubbles:  Array.from({length:70},  () => mkBubble(W(),H())),
-      fishes:   Array.from({length:16},  (_,i) => mkFish(i,W(),H())),
-      jellies:  Array.from({length:7},   () => mkJelly(W(),H())),
-      caustics: Array.from({length:20},  () => mkCaustic(W(),H())),
+    const c=cvs.current, ctx=c.getContext("2d");
+    const W=()=>c.width, H=()=>c.height;
+    const resize=()=>{ c.width=window.innerWidth; c.height=window.innerHeight; };
+    resize(); window.addEventListener("resize",resize);
+    st.current={
+      bubbles:  Array.from({length:70},  ()=>mkBubble(W(),H())),
+      fishes:   Array.from({length:16},  (_,i)=>mkFish(i,W(),H())),
+      jellies:  Array.from({length:7},   ()=>mkJelly(W(),H())),
+      caustics: Array.from({length:20},  ()=>mkCaustic(W(),H())),
     };
     let t=0;
-    const tick = () => {
+    const tick=()=>{
       t+=1/60; ctx.clearRect(0,0,W(),H());
       const {bubbles,fishes,jellies,caustics}=st.current;
       const {x:mx,y:my}=mp.current;
@@ -187,9 +177,9 @@ function OceanCanvas({ mousePos }) {
       raf.current=requestAnimationFrame(tick);
     };
     tick();
-    return ()=>{ window.removeEventListener("resize",resize); cancelAnimationFrame(raf.current); };
+    return()=>{ window.removeEventListener("resize",resize); cancelAnimationFrame(raf.current); };
   }, []);
-  return <canvas ref={cvs} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:1}} />;
+  return <canvas ref={cvs} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:1}}/>;
 }
 
 function Seaweed({ x, h, p, c, d }) {
@@ -223,10 +213,10 @@ function Vessel({ x, y, sc, op }) {
 
 function HudChip({ l, v, a, style }) {
   return (
-    <div style={{position:"absolute",fontFamily:"'Share Tech Mono',monospace",fontSize:"8px",letterSpacing:"0.1em",...style}}>
+    <div style={{position:"absolute",fontFamily:"'Inter',sans-serif",fontSize:"8px",fontWeight:500,letterSpacing:"0.1em",...style}}>
       <div style={{display:"inline-flex",flexDirection:"column",gap:"1px",border:`1px solid ${a}0.18)`,borderRadius:"3px",padding:"4px 7px",background:"linear-gradient(135deg,rgba(0,15,30,0.7),rgba(0,20,40,0.5))",backdropFilter:"blur(6px)"}}>
         <span style={{color:`${a}0.38)`}}>{l}</span>
-        <span style={{color:`${a}0.82)`,fontSize:"10px"}}>{v}</span>
+        <span style={{color:`${a}0.82)`,fontSize:"10px",fontWeight:600}}>{v}</span>
       </div>
     </div>
   );
@@ -248,12 +238,12 @@ function OceanBg({ px, py }) {
 // ─── HUD overlay ─────────────────────────────────────────────────────────────
 
 function HudOverlay({ px, py }) {
-  const s = (side, i) => ({ [side]: "1.5%", top: `${12+i*9}%` });
-  const bs = (side, i) => ({ [side]: "1.5%", bottom: `${8+i*6}%` });
+  const s  = (side, i) => ({ [side]: "1.5%", top:    `${12+i*9}%`  });
+  const bs = (side, i) => ({ [side]: "1.5%", bottom: `${8+i*6}%`   });
   return (
     <div style={{position:"fixed",inset:0,zIndex:5,pointerEvents:"none",transform:`translate(${px*-22}px,${py*-14}px)`,transition:"transform 0.28s ease-out"}}>
-      {HUD.left.map(  (d,i) => <HudChip key={d.l} {...d} style={s("left",  i)} />)}
-      {HUD.right.map( (d,i) => <HudChip key={d.l} {...d} style={s("right", i)} />)}
+      {HUD.left.map(  (d,i) => <HudChip key={d.l} {...d} style={s("left",   i)} />)}
+      {HUD.right.map( (d,i) => <HudChip key={d.l} {...d} style={s("right",  i)} />)}
       {HUD.bl.map(    (d,i) => <HudChip key={d.l} {...d} style={bs("left",  i)} />)}
       {HUD.br.map(    (d,i) => <HudChip key={d.l} {...d} style={bs("right", i)} />)}
     </div>
@@ -264,11 +254,11 @@ function HudOverlay({ px, py }) {
 
 function BrandPanel({ px, py }) {
   return (
-    <div className="brand-left" style={{flex:"0 0 auto",maxWidth:380,transform:`translate(${px*-14}px,${py*-8}px)`,transition:"transform 0.3s ease-out"}}>
+    <div className="brand-left" style={{flex:"0 0 auto",maxWidth:400,transform:`translate(${px*-14}px,${py*-8}px)`,transition:"transform 0.3s ease-out"}}>
 
-      {/* Logo row */}
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-        <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+      {/* Logo + brand names */}
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+        <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
           <circle cx="24" cy="24" r="20" stroke="rgba(0,200,170,0.6)" strokeWidth="1.2"/>
           <path d="M16,24 Q22,18 30,24 Q22,30 16,24Z" fill="rgba(0,200,170,0.7)"/>
           <path d="M12,24 L10,20 L10,28Z" fill="rgba(0,200,170,0.5)"/>
@@ -276,37 +266,43 @@ function BrandPanel({ px, py }) {
           <path d="M24,4 L24,12 M24,36 L24,44 M4,24 L12,24 M36,24 L44,24" stroke="rgba(0,180,160,0.3)" strokeWidth="0.8"/>
         </svg>
         <div>
-          <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,letterSpacing:"0.28em",color:"rgba(0,210,170,0.65)"}}>ROOTVERSE</div>
-          <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.14em",color:"rgba(0,180,160,0.35)"}}>BLUE ECONOMY PLATFORM</div>
+          <div style={{fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:16,letterSpacing:"0.1em",color:"rgba(0,225,185,0.92)"}}>ROOT VERSE</div>
+          <div style={{fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:11,letterSpacing:"0.12em",color:"rgba(0,200,170,0.5)"}}>ONE BLUE</div>
         </div>
       </div>
 
+      {/* Divider */}
+      <div style={{height:1,background:"linear-gradient(90deg,rgba(0,200,170,0.35),transparent)",margin:"10px 0 18px"}}/>
+
       {/* Headline */}
-      <h1 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(28px,3.8vw,46px)",lineHeight:1.0,color:"#ceeaf0",margin:0,letterSpacing:"0.04em",textShadow:"0 0 40px rgba(0,200,200,0.25)"}}>
-        BLUE<br/>
-        <span style={{WebkitTextStroke:"1px rgba(0,200,180,0.75)",color:"transparent"}}>ECONOMY</span><br/>
-        <span style={{fontSize:"0.4em",letterSpacing:"0.14em",color:"rgba(0,200,180,0.55)",fontFamily:"'Exo 2',sans-serif",fontWeight:300}}>TRACEABILITY ADMIN CONSOLE</span>
+      <h1 style={{fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:"clamp(24px,3.2vw,40px)",lineHeight:1.08,color:"#ceeaf0",margin:"0 0 10px",letterSpacing:"0.02em",textShadow:"0 0 40px rgba(0,200,200,0.2)"}}>
+        ONE BLUE<br/>
+        <span style={{WebkitTextStroke:"1px rgba(0,200,180,0.7)",color:"transparent"}}>TRACEABILITY</span>
       </h1>
 
-      <p style={{fontSize:11,color:"rgba(160,215,225,0.45)",margin:"10px 0 16px",lineHeight:1.6,maxWidth:340}}>
-        End-to-end digital traceability for aquaculture ponds and wild-capture fisheries — hatchery to consumer.
+      <p style={{fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:12,color:"rgba(160,215,225,0.5)",margin:"0 0 24px",lineHeight:1.7,maxWidth:360}}>
+        End-to-end traceability across wild capture fisheries, mariculture, aquaculture, and the full chain of custody — all managed from a single admin console.
       </p>
 
-      {/* Features */}
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {/* 4 sectors */}
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
         {FEATURES.map(({icon,title,desc})=>(
-          <div key={title} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-            <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{icon}</span>
+          <div key={title} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+            <div style={{width:34,height:34,borderRadius:8,background:"rgba(0,160,140,0.1)",border:"1px solid rgba(0,200,170,0.18)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16}}>
+              {icon}
+            </div>
             <div>
-              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:12,fontWeight:600,color:"rgba(200,235,240,0.75)",letterSpacing:"0.03em"}}>{title}</div>
-              <div style={{fontSize:11,color:"rgba(150,200,215,0.4)",lineHeight:1.5,marginTop:1}}>{desc}</div>
+              <div style={{fontFamily:"'Inter',sans-serif",fontSize:12,fontWeight:600,color:"rgba(200,240,235,0.85)",marginBottom:2}}>{title}</div>
+              <div style={{fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:11,color:"rgba(140,195,210,0.45)",lineHeight:1.55}}>{desc}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{marginTop:16,fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.1em",color:"rgba(80,150,170,0.32)"}}>
-        © 2026 ROOTVERSE PLATFORM — ADMIN USE ONLY
+      {/* Footer */}
+      <div style={{marginTop:22,paddingTop:14,borderTop:"1px solid rgba(0,180,160,0.1)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:9,letterSpacing:"0.06em",color:"rgba(80,150,170,0.3)"}}>© 2026 ROOT VERSE · ONE BLUE</span>
+        <span style={{fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:9,letterSpacing:"0.1em",color:"rgba(0,200,170,0.22)"}}>ADMIN USE ONLY</span>
       </div>
     </div>
   );
@@ -320,15 +316,15 @@ function LoginCard({ tilt, px, py, form, setForm, focused, setFocused, isLoading
     background:"rgba(0,18,32,0.75)",
     border:`1px solid ${focused===field?"rgba(0,210,180,0.65)":"rgba(0,130,150,0.22)"}`,
     borderRadius:6, padding:"10px 12px",
-    fontFamily:"'Share Tech Mono',monospace", fontSize:12, color:"#c8e8f0",
+    fontFamily:"'Inter',sans-serif", fontWeight:400, fontSize:13, color:"#c8e8f0",
     outline:"none",
     boxShadow:focused===field?"0 0 16px rgba(0,210,180,0.13),inset 0 0 8px rgba(0,160,180,0.05)":"none",
     transition:"all 0.2s",
   });
 
   const corners = [
-    {top:8,left:8,  borderTop:"1px solid rgba(0,210,180,0.45)",borderLeft:"1px solid rgba(0,210,180,0.45)"},
-    {top:8,right:8, borderTop:"1px solid rgba(0,210,180,0.45)",borderRight:"1px solid rgba(0,210,180,0.45)"},
+    {top:8,left:8,   borderTop:"1px solid rgba(0,210,180,0.45)",borderLeft:"1px solid rgba(0,210,180,0.45)"},
+    {top:8,right:8,  borderTop:"1px solid rgba(0,210,180,0.45)",borderRight:"1px solid rgba(0,210,180,0.45)"},
     {bottom:8,left:8,  borderBottom:"1px solid rgba(0,210,180,0.45)",borderLeft:"1px solid rgba(0,210,180,0.45)"},
     {bottom:8,right:8, borderBottom:"1px solid rgba(0,210,180,0.45)",borderRight:"1px solid rgba(0,210,180,0.45)"},
   ];
@@ -343,17 +339,21 @@ function LoginCard({ tilt, px, py, form, setForm, focused, setFocused, isLoading
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,100,120,0.08) 0%,transparent 60%)",borderRadius:"inherit"}}/>
 
         {/* Card header */}
-        <div style={{marginBottom:20}}>
-          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <div style={{marginBottom:22}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none">
               <circle cx="9" cy="9" r="7" stroke="rgba(0,210,175,0.7)" strokeWidth="1"/>
               <path d="M6,9 Q8.5,6.5 11.5,9 Q8.5,11.5 6,9Z" fill="rgba(0,210,175,0.65)"/>
               <circle cx="10.2" cy="8" r="1.2" fill="rgba(200,240,255,0.8)"/>
             </svg>
-            <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.24em",color:"rgba(0,210,175,0.55)"}}>ROOTVERSE / ADMIN CONSOLE</span>
+            <span style={{fontFamily:"'Inter',sans-serif",fontWeight:600,fontSize:9,letterSpacing:"0.2em",color:"rgba(0,210,175,0.5)"}}>ROOT VERSE · ONE BLUE</span>
           </div>
-          <h2 style={{fontFamily:"'Cinzel',serif",fontSize:26,letterSpacing:"0.1em",color:"#d5eef4",margin:0,lineHeight:1,textShadow:"0 0 28px rgba(0,180,180,0.2)"}}>ADMIN LOGIN</h2>
-          <p style={{fontSize:10,letterSpacing:"0.04em",color:"rgba(140,200,215,0.42)",marginTop:5}}>Use your RootVerse admin credentials.</p>
+          <h2 style={{fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:26,letterSpacing:"0.06em",color:"#d5eef4",margin:"0 0 6px",lineHeight:1,textShadow:"0 0 28px rgba(0,180,180,0.2)"}}>
+            ADMIN LOGIN
+          </h2>
+          <p style={{fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:11,color:"rgba(140,200,215,0.45)",margin:0}}>
+            Authorized access for Root Verse operations staff.
+          </p>
         </div>
 
         {/* Form */}
@@ -361,37 +361,43 @@ function LoginCard({ tilt, px, py, form, setForm, focused, setFocused, isLoading
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
             <div>
-              <label style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.2em",marginBottom:6,transition:"color 0.2s",color:focused==="login_id"?"rgba(0,215,180,0.85)":"rgba(120,190,210,0.42)"}}>WORK EMAIL / ADMIN ID</label>
+              <label style={{display:"block",fontFamily:"'Inter',sans-serif",fontWeight:600,fontSize:9,letterSpacing:"0.18em",marginBottom:6,transition:"color 0.2s",color:focused==="login_id"?"rgba(0,215,180,0.85)":"rgba(120,190,210,0.42)"}}>
+                WORK EMAIL / ADMIN ID
+              </label>
               <div style={{position:"relative"}}>
                 <input name="login_id" type="text" required value={form.login_id}
                   onChange={e=>setForm(p=>({...p,login_id:e.target.value}))}
                   onFocus={()=>setFocused("login_id")} onBlur={()=>setFocused(null)}
                   placeholder="Email or phone number" style={inp("login_id")}/>
-                {focused==="login_id" && <div style={{position:"absolute",bottom:-1,left:"8%",right:"8%",height:1,background:"linear-gradient(90deg,transparent,rgba(0,210,180,0.85),transparent)"}}/>}
+                {focused==="login_id"&&<div style={{position:"absolute",bottom:-1,left:"8%",right:"8%",height:1,background:"linear-gradient(90deg,transparent,rgba(0,210,180,0.85),transparent)"}}/>}
               </div>
             </div>
 
             <div>
-              <label style={{display:"block",fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.2em",marginBottom:6,transition:"color 0.2s",color:focused==="password"?"rgba(0,215,180,0.85)":"rgba(120,190,210,0.42)"}}>PASSWORD</label>
+              <label style={{display:"block",fontFamily:"'Inter',sans-serif",fontWeight:600,fontSize:9,letterSpacing:"0.18em",marginBottom:6,transition:"color 0.2s",color:focused==="password"?"rgba(0,215,180,0.85)":"rgba(120,190,210,0.42)"}}>
+                PASSWORD
+              </label>
               <div style={{position:"relative"}}>
                 <input name="password" type="password" required value={form.password}
                   onChange={e=>setForm(p=>({...p,password:e.target.value}))}
                   onFocus={()=>setFocused("password")} onBlur={()=>setFocused(null)}
                   placeholder="••••••••••" style={inp("password")}/>
-                {focused==="password" && <div style={{position:"absolute",bottom:-1,left:"8%",right:"8%",height:1,background:"linear-gradient(90deg,transparent,rgba(0,210,180,0.85),transparent)"}}/>}
+                {focused==="password"&&<div style={{position:"absolute",bottom:-1,left:"8%",right:"8%",height:1,background:"linear-gradient(90deg,transparent,rgba(0,210,180,0.85),transparent)"}}/>}
               </div>
             </div>
 
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer"}}>
                 <input type="checkbox" style={{width:11,height:11,accentColor:"#00d4b4"}}/>
-                <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.1em",color:"rgba(110,180,200,0.42)"}}>REMEMBER</span>
+                <span style={{fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:9,letterSpacing:"0.1em",color:"rgba(110,180,200,0.42)"}}>REMEMBER ME</span>
               </label>
-              <button type="button" style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.1em",color:"rgba(0,190,170,0.52)",padding:0}}>FORGOT?</button>
+              <button type="button" style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:9,letterSpacing:"0.1em",color:"rgba(0,190,170,0.52)",padding:0}}>
+                FORGOT PASSWORD?
+              </button>
             </div>
 
             {authError && (
-              <div style={{padding:"8px 12px",borderRadius:6,background:"rgba(180,20,40,0.18)",border:"1px solid rgba(220,50,70,0.35)",fontFamily:"'Share Tech Mono',monospace",fontSize:9,letterSpacing:"0.08em",color:"rgba(255,120,130,0.9)",lineHeight:1.5}}>
+              <div style={{padding:"8px 12px",borderRadius:6,background:"rgba(180,20,40,0.18)",border:"1px solid rgba(220,50,70,0.35)",fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:9,letterSpacing:"0.06em",color:"rgba(255,120,130,0.9)",lineHeight:1.5}}>
                 ⚠ {authError}
               </div>
             )}
@@ -399,17 +405,17 @@ function LoginCard({ tilt, px, py, form, setForm, focused, setFocused, isLoading
             <button type="submit" disabled={isLoading}
               onMouseEnter={e=>{ if(!isLoading) e.currentTarget.style.boxShadow="0 0 42px rgba(0,200,180,0.5),inset 0 1px 0 rgba(255,255,255,0.18)"; }}
               onMouseLeave={e=>{ if(!isLoading) e.currentTarget.style.boxShadow="0 0 26px rgba(0,180,160,0.26),inset 0 1px 0 rgba(255,255,255,0.1)"; }}
-              style={{position:"relative",width:"100%",padding:"12px 0",background:done?"linear-gradient(135deg,rgba(0,180,120,0.9),rgba(0,150,100,0.9))":isLoading?"rgba(0,40,50,0.8)":"linear-gradient(135deg,rgba(0,165,145,0.92),rgba(0,135,120,0.9))",border:`1px solid rgba(0,210,180,${isLoading?0.15:0.45})`,borderRadius:7,color:"#d0f5ee",fontFamily:"'Cinzel',serif",fontSize:15,letterSpacing:"0.2em",cursor:isLoading?"not-allowed":"pointer",overflow:"hidden",transition:"all 0.25s",boxShadow:isLoading?"none":"0 0 26px rgba(0,180,160,0.26),inset 0 1px 0 rgba(255,255,255,0.1)"}}>
-              {done?"ACCESS GRANTED":isLoading
-                ?<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:9}}><span style={{display:"inline-block",animation:"spin 1.2s linear infinite"}}>◎</span>AUTHENTICATING</span>
-                :"SIGN IN"}
+              style={{position:"relative",width:"100%",padding:"13px 0",background:done?"linear-gradient(135deg,rgba(0,180,120,0.9),rgba(0,150,100,0.9))":isLoading?"rgba(0,40,50,0.8)":"linear-gradient(135deg,rgba(0,165,145,0.92),rgba(0,135,120,0.9))",border:`1px solid rgba(0,210,180,${isLoading?0.15:0.45})`,borderRadius:7,color:"#d0f5ee",fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:13,letterSpacing:"0.22em",cursor:isLoading?"not-allowed":"pointer",overflow:"hidden",transition:"all 0.25s",boxShadow:isLoading?"none":"0 0 26px rgba(0,180,160,0.26),inset 0 1px 0 rgba(255,255,255,0.1)"}}>
+              {done ? "ACCESS GRANTED" : isLoading
+                ? <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:9}}><span style={{display:"inline-block",animation:"spin 1.2s linear infinite"}}>◎</span>AUTHENTICATING</span>
+                : "SIGN IN"}
               {!isLoading&&!done&&<div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)",animation:"shimmer 3.5s ease-in-out infinite",pointerEvents:"none"}}/>}
             </button>
           </div>
         </form>
 
-        <p style={{marginTop:16,fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.06em",color:"rgba(80,150,170,0.28)",lineHeight:1.7,textAlign:"center"}}>
-          RESTRICTED — AUTHORIZED ROOTVERSE HQ &amp; OPERATIONS STAFF ONLY
+        <p style={{marginTop:16,fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:9,letterSpacing:"0.05em",color:"rgba(80,150,170,0.28)",lineHeight:1.7,textAlign:"center"}}>
+          RESTRICTED — AUTHORIZED ROOT VERSE OPERATIONS STAFF ONLY
         </p>
       </div>
     </div>
@@ -434,26 +440,22 @@ export default function AdminLoginPage() {
   const [ripples, setRipples] = useState([]);
   const wrapRef = useRef(null);
 
-  // Load fonts
   useEffect(() => {
     const link = Object.assign(document.createElement("link"), { rel:"stylesheet", href:FONTS_URL });
     document.head.appendChild(link);
     return () => document.head.removeChild(link);
   }, []);
 
-  // On mount: rehydrate Redux from localStorage, check 7-day session
   useEffect(() => {
     if (isSessionValid()) {
       dispatch(initFromStorage());
     } else {
-      // Session expired or never set — clear any stale data
       clearSession();
       dispatch(logout());
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Redirect if already authenticated (after rehydrate or after login)
   useEffect(() => {
     if (isAuth) navigate("/admin/hub", { replace: true });
   }, [isAuth, navigate]);
@@ -485,7 +487,7 @@ export default function AdminLoginPage() {
 
   return (
     <div onMouseMove={handleMouseMove} onClick={handleClick}
-      style={{height:"100vh",width:"100%",overflow:"hidden",position:"relative",background:"#00080f",fontFamily:"'Exo 2',sans-serif",cursor:"none",userSelect:"none"}}>
+      style={{height:"100vh",width:"100%",overflow:"hidden",position:"relative",background:"#00080f",fontFamily:"'Inter',sans-serif",cursor:"none",userSelect:"none"}}>
 
       {/* Sonar cursor */}
       <div style={{position:"fixed",zIndex:9999,pointerEvents:"none",left:mouse.x,top:mouse.y,transform:"translate(-50%,-50%)"}}>
@@ -505,7 +507,7 @@ export default function AdminLoginPage() {
         <div key={id} style={{position:"fixed",left:x,top:y,zIndex:9998,pointerEvents:"none",transform:"translate(-50%,-50%)",width:0,height:0,borderRadius:"50%",border:"1px solid rgba(0,220,180,0.6)",animation:"rippleOut 1.2s ease-out forwards"}}/>
       ))}
 
-      <OceanBg px={px} py={py} />
+      <OceanBg px={px} py={py}/>
 
       {/* Vessels */}
       <div style={{position:"fixed",inset:0,zIndex:3,pointerEvents:"none",transform:`translate(${px*-25}px,${py*-12}px)`,transition:"transform 0.35s ease-out"}}>
@@ -534,7 +536,7 @@ export default function AdminLoginPage() {
         @keyframes rippleOut { 0%{width:0;height:0;opacity:0.6} 100%{width:180px;height:180px;margin-left:-90px;margin-top:-90px;opacity:0} }
         .brand-left { display:none !important; flex-direction:column; }
         @media (min-width:1024px) { .brand-left { display:flex !important; } }
-        input::placeholder { color:rgba(60,140,160,0.32); }
+        input::placeholder { color:rgba(60,140,160,0.32); font-family:'Inter',sans-serif; }
         * { box-sizing:border-box; }
       `}</style>
     </div>

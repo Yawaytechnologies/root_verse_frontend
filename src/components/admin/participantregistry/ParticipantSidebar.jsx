@@ -69,7 +69,8 @@ const NAV = [
     children: [
       { to: `${BASE}/crate-packer`,       label: "Crate Packer Create" },
       { to: `${BASE}/crate-list`,         label: "Crate Packer Listing" },
-      { to: `${BASE}/center-crate-status`,label: "Crate Receive Status" },
+      // { to: `${BASE}/center-crate-status`,label: "Crate Receive Status" },
+      { to: `${BASE}/crate-listing`,       label: "Crate Listing" },
     ],
   },
 

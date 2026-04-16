@@ -19,6 +19,8 @@ import collectionCenterReducer from "../reducer/collectionCenterSlice";
 import ccOperatorReducer from "../reducer/ccOperatorSlice";
 import transportOperatorReducer from "../reducer/transportOperatorSlice";
 import authReducer from "../reducer/adminLoginSlice";
+import crateListingReducer from "../reducer/crateListingSlice";
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -40,5 +42,6 @@ export const store = configureStore({
     collectionCenter: collectionCenterReducer,
     ccOperator: ccOperatorReducer,
     transportOperator: transportOperatorReducer,
+    crateListing: crateListingReducer,
   },
 });

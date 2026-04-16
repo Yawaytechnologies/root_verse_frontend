@@ -35,6 +35,8 @@ import CollectionCentreOperatorCreation from './components/admin/participantregi
 import TransportOperatorCreation from './components/admin/participantregistry/TransportOperatorCreation.jsx';
 import TransportOperatorList from './components/admin/participantregistry/TransportOperatorListing.jsx';
 import CollectionCentreOperatorListing from './components/admin/participantregistry/CollectionCenterOperatorList.jsx'
+import CrateListing from './components/admin/participantregistry/CrateListing.jsx'
+import QualityControllerListing from './components/admin/participantregistry/QualityControllerListing.jsx'
 
 import QualityInspectionLogs from './components/admin/wildcapture/QualityInspectionLogs.jsx';
 import LandingQCPage from './components/admin/wildcapture/LandingQC.jsx';
@@ -160,7 +162,9 @@ export default function App() {
         <Route path='transport-operator-list' element={<TransportOperatorList />} />
         <Route path='center-operator-registeration' element={<CollectionCentreOperatorCreation />} />
         <Route path='center-operator-list' element={<CollectionCentreOperatorListing />} />
-        
+        <Route path='crate-listing' element={<CrateListing />} />
+        <Route path='quality-checker-list' element={<QualityControllerListing />} />
+
       </Route>
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const l = require\\('lucide-react'\\); ['Package','RefreshCw','Eye','Pencil','X','Loader2','AlertTriangle','Inbox','Truck','Clock','Thermometer','ClipboardList','FileText','ChevronLeft','ChevronRight','Search','Filter','ArrowRight','Boxes','LayoutDashboard'].forEach\\(n => console.log\\(n, !!l[n]\\)\\)\")"
+    ]
+  }
+}
