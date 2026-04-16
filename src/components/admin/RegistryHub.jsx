@@ -9,8 +9,7 @@ import cocImg  from "../../assets/logistics.jpg";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FONTS_URL =
-  "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700" +
-  "&family=Exo+2:wght@300;400;600&family=Share+Tech+Mono&display=swap";
+  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
 
 const FISH_COLORS = [
   { body:"0,200,180",  fin:"0,160,150"   },
@@ -170,11 +169,10 @@ function Seaweed({x,h,p,c,d}){
 /** One full-height sector panel with cursor spotlight */
 function SectorCard({ s, i, mouse }){
   const cardRef  = useRef(null);
-  const [local,  setLocal]  = useState({ x:50, y:50 }); // % within card
+  const [local,  setLocal]  = useState({ x:50, y:50 });
   const [hovered,setHovered]= useState(false);
   const a = s.accent;
 
-  // Convert global mouse → local % inside card
   useEffect(()=>{
     if(!cardRef.current || !hovered) return;
     const r = cardRef.current.getBoundingClientRect();
@@ -184,12 +182,10 @@ function SectorCard({ s, i, mouse }){
     });
   }, [mouse, hovered]);
 
-  // Subtle image parallax driven by cursor
   const imgShift = hovered
     ? `translate(${(local.x-50)*-0.04}%,${(local.y-50)*-0.04}%) scale(1.08)`
     : "scale(1.02)";
 
-  // Content tilt (very subtle 3-D feel)
   const tiltX = hovered ? (local.y - 50) * 0.06 : 0;
   const tiltY = hovered ? (local.x - 50) * -0.06 : 0;
 
@@ -220,7 +216,7 @@ function SectorCard({ s, i, mouse }){
       <div style={{position:"absolute",inset:0,zIndex:1,
         background:"linear-gradient(180deg,rgba(0,8,16,0.1) 0%,rgba(0,10,20,0.25) 40%,rgba(0,6,14,0.75) 100%)"}}/>
 
-      {/* ── CURSOR SPOTLIGHT ── follows mouse inside card */}
+      {/* Cursor spotlight */}
       <div style={{
         position:"absolute",inset:0,zIndex:2,
         background: hovered
@@ -230,7 +226,7 @@ function SectorCard({ s, i, mouse }){
         mixBlendMode:"screen",
       }}/>
 
-      {/* Dark vignette around edges — keeps spotlight pop */}
+      {/* Dark vignette */}
       <div style={{position:"absolute",inset:0,zIndex:2,
         background:"radial-gradient(ellipse 90% 90% at 50% 50%,transparent 40%,rgba(0,4,12,0.55) 100%)"}}/>
 
@@ -258,7 +254,7 @@ function SectorCard({ s, i, mouse }){
         <div key={j} style={{position:"absolute",width:12,height:12,zIndex:5,...pos}}/>
       ))}
 
-      {/* Card content — subtle tilt */}
+      {/* Card content */}
       <div style={{
         position:"relative",zIndex:5,padding:"0 22px 32px",
         display:"flex",flexDirection:"column",gap:10,
@@ -273,14 +269,21 @@ function SectorCard({ s, i, mouse }){
             background:`rgba(${a},0.9)`,
             boxShadow:`0 0 10px rgba(${a},0.8),0 0 22px rgba(${a},0.4)`,
           }}/>
-          <span style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,letterSpacing:"0.22em",color:`rgba(${a},0.8)`}}>
+          <span style={{
+            fontFamily:"'Inter',sans-serif",
+            fontWeight:600,
+            fontSize:9,
+            letterSpacing:"0.22em",
+            color:`rgba(${a},0.8)`,
+          }}>
             {s.tag.toUpperCase()}
           </span>
         </div>
 
         {/* Title */}
         <h2 style={{
-          fontFamily:"'Cinzel',serif",
+          fontFamily:"'Inter',sans-serif",
+          fontWeight:700,
           fontSize:"clamp(24px,2.4vw,38px)",
           lineHeight:1.08,color:"#e8f4f8",margin:0,
           textShadow:`0 0 40px rgba(${a},0.35),0 2px 16px rgba(0,0,0,0.7)`,
@@ -293,7 +296,9 @@ function SectorCard({ s, i, mouse }){
 
         {/* Desc */}
         <p style={{
-          fontFamily:"'Exo 2',sans-serif",fontSize:12,
+          fontFamily:"'Inter',sans-serif",
+          fontWeight:400,
+          fontSize:12,
           color: hovered ? "rgba(200,235,240,0.75)" : "rgba(180,220,230,0.45)",
           margin:0,lineHeight:1.55,
           transition:"color 0.4s ease",
@@ -309,7 +314,10 @@ function SectorCard({ s, i, mouse }){
           background: hovered ? `rgba(${a},0.18)` : "rgba(0,15,28,0.45)",
           backdropFilter:"blur(12px)",
           color:`rgba(${a},0.95)`,
-          fontFamily:"'Cinzel',serif",fontSize:12,letterSpacing:"0.16em",
+          fontFamily:"'Inter',sans-serif",
+          fontWeight:600,
+          fontSize:12,
+          letterSpacing:"0.16em",
           boxShadow: hovered ? `0 0 28px rgba(${a},0.35),inset 0 1px 0 rgba(255,255,255,0.08)` : "none",
           transition:"all 0.35s ease",
         }}>
@@ -351,7 +359,7 @@ export default function RegistryHubPage(){
     <div
       onMouseMove={handleMouseMove}
       onClick={handleClick}
-      style={{height:"100vh",width:"100%",overflow:"hidden",position:"relative",background:"#00080f",fontFamily:"'Exo 2',sans-serif",cursor:"none",userSelect:"none"}}
+      style={{height:"100vh",width:"100%",overflow:"hidden",position:"relative",background:"#00080f",fontFamily:"'Inter',sans-serif",cursor:"none",userSelect:"none"}}
     >
       {/* Sonar cursor */}
       <div style={{position:"fixed",zIndex:9999,pointerEvents:"none",left:mouse.x,top:mouse.y,transform:"translate(-50%,-50%)"}}>
@@ -392,11 +400,11 @@ export default function RegistryHubPage(){
             <circle cx="27" cy="22" r="1.6"               fill="rgba(200,240,255,0.9)"/>
           </svg>
           <div>
-            <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,letterSpacing:"0.28em",color:"rgba(0,210,170,0.7)"}}>ROOTVERSE</div>
-            <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:7,letterSpacing:"0.14em",color:"rgba(0,180,160,0.35)"}}>REGISTRY HUB</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:9,letterSpacing:"0.28em",color:"rgba(0,210,170,0.7)"}}>ROOTVERSE</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontWeight:400,fontSize:7,letterSpacing:"0.14em",color:"rgba(0,180,160,0.35)"}}>REGISTRY HUB</div>
           </div>
         </div>
-        <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:8,letterSpacing:"0.18em",color:"rgba(0,200,180,0.35)"}}>
+        <div style={{fontFamily:"'Inter',sans-serif",fontWeight:500,fontSize:8,letterSpacing:"0.18em",color:"rgba(0,200,180,0.35)"}}>
           ADMIN CONSOLE
         </div>
       </div>
