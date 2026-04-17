@@ -191,6 +191,7 @@ function SectorCard({ s, i, mouse }){
 
   return(
     <Link
+      className="rv-sector-card"
       ref={cardRef}
       to={s.to}
       onMouseEnter={()=>setHovered(true)}
@@ -255,7 +256,7 @@ function SectorCard({ s, i, mouse }){
       ))}
 
       {/* Card content */}
-      <div style={{
+      <div className="rv-sector-content" style={{
         position:"relative",zIndex:5,padding:"0 22px 32px",
         display:"flex",flexDirection:"column",gap:10,
         transform:`perspective(600px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
@@ -281,7 +282,7 @@ function SectorCard({ s, i, mouse }){
         </div>
 
         {/* Title */}
-        <h2 style={{
+        <h2 className="rv-sector-title" style={{
           fontFamily:"'Inter',sans-serif",
           fontWeight:700,
           fontSize:"clamp(24px,2.4vw,38px)",
@@ -295,7 +296,7 @@ function SectorCard({ s, i, mouse }){
         </h2>
 
         {/* Desc */}
-        <p style={{
+        <p className="rv-sector-desc" style={{
           fontFamily:"'Inter',sans-serif",
           fontWeight:400,
           fontSize:12,
@@ -307,7 +308,7 @@ function SectorCard({ s, i, mouse }){
         </p>
 
         {/* Manage button */}
-        <div style={{
+        <div className="rv-manage-btn" style={{
           display:"inline-flex",alignItems:"center",gap:8,alignSelf:"flex-start",marginTop:6,
           padding:"10px 20px",borderRadius:40,
           border:`1px solid rgba(${a},${hovered?0.6:0.3})`,
@@ -357,12 +358,13 @@ export default function RegistryHubPage(){
 
   return(
     <div
+      className="rv-hub-outer"
       onMouseMove={handleMouseMove}
       onClick={handleClick}
       style={{height:"100vh",width:"100%",overflow:"hidden",position:"relative",background:"#00080f",fontFamily:"'Inter',sans-serif",cursor:"none",userSelect:"none"}}
     >
       {/* Sonar cursor */}
-      <div style={{position:"fixed",zIndex:9999,pointerEvents:"none",left:mouse.x,top:mouse.y,transform:"translate(-50%,-50%)"}}>
+      <div className="rv-sonar-cursor" style={{position:"fixed",zIndex:9999,pointerEvents:"none",left:mouse.x,top:mouse.y,transform:"translate(-50%,-50%)"}}>
         <svg width="36" height="36" viewBox="0 0 40 40">
           <circle cx="20" cy="20" r="15" stroke="rgba(0,220,180,0.5)" strokeWidth="1" fill="none"/>
           <circle cx="20" cy="20" r="7"  stroke="rgba(0,220,180,0.25)" strokeWidth="0.8" fill="none"/>
@@ -410,7 +412,7 @@ export default function RegistryHubPage(){
       </div>
 
       {/* 4-column sector grid */}
-      <div style={{position:"relative",zIndex:4,height:"100vh",display:"flex",paddingTop:48}}>
+      <div className="rv-sector-grid" style={{position:"relative",zIndex:4,height:"100vh",display:"flex",paddingTop:48}}>
         {SECTORS.map((s,i)=>(
           <SectorCard key={s.key} s={s} i={i} mouse={mouse}/>
         ))}
@@ -422,6 +424,60 @@ export default function RegistryHubPage(){
         @keyframes rippleOut { 0%{width:0;height:0;opacity:0.6} 100%{width:180px;height:180px;margin-left:-90px;margin-top:-90px;opacity:0} }
         @keyframes cardRise  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
         * { box-sizing:border-box; }
+
+        @media (max-width: 768px) {
+          .rv-hub-outer {
+            overflow-y: auto !important;
+            cursor: default !important;
+            height: 100vh !important;
+          }
+          .rv-sonar-cursor { display: none !important; }
+          .rv-sector-grid {
+            flex-wrap: wrap !important;
+            height: auto !important;
+            min-height: calc(100vh - 48px) !important;
+          }
+          .rv-sector-card {
+            flex: 0 0 50% !important;
+            height: 50vw !important;
+            min-height: 200px !important;
+            border-right: none !important;
+            border-bottom: 1px solid rgba(0,200,180,0.08) !important;
+          }
+          .rv-sector-content {
+            padding: 0 12px 16px !important;
+            gap: 6px !important;
+          }
+          .rv-sector-title {
+            font-size: 16px !important;
+            white-space: pre-line !important;
+          }
+          .rv-sector-desc {
+            font-size: 10px !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+          }
+          .rv-manage-btn {
+            padding: 6px 12px !important;
+            font-size: 10px !important;
+            margin-top: 2px !important;
+            letter-spacing: 0.1em !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .rv-sector-card {
+            flex: 0 0 50% !important;
+            height: 52vw !important;
+            min-height: 185px !important;
+          }
+          .rv-sector-title { font-size: 14px !important; }
+          .rv-sector-content { padding: 0 10px 12px !important; gap: 4px !important; }
+          .rv-sector-desc { font-size: 9px !important; }
+          .rv-manage-btn { padding: 5px 10px !important; font-size: 9px !important; }
+        }
       `}</style>
     </div>
   );
