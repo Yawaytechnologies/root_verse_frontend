@@ -78,7 +78,7 @@ function QRModal({ code, qrType, locationId, onClose }) {
 // ─── QR Table Row ────────────────────────────────────────────
 function QRTableRow({ item, index, globalIndex, qrType, locationId, onPreview }) {
   const [dataUrl, setDataUrl] = useState(null);
-  const code = item?.code ?? item?.id ?? item ?? `${qrType}-${locationId}-${globalIndex + 1}`;
+  const code = item?.qrs_code ?? item?.code ?? item?.id ?? item ?? `${qrType}-${locationId}-${globalIndex + 1}`;
   const type = QR_TYPES.find((t) => t.key === qrType) ?? QR_TYPES[0];
 
   useEffect(() => {
@@ -155,8 +155,8 @@ export default function AquaQR() {
   const [year, setYear]               = useState(CURRENT_YEAR);
   const [count, setCount]             = useState(10);
 
-  const [currentPage, setCurrentPage]   = useState(1);
-  const [previewCode, setPreviewCode]   = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [previewCode, setPreviewCode] = useState(null);
 
   useEffect(() => {
     const fn = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false); };
@@ -199,21 +199,22 @@ export default function AquaQR() {
     setCurrentPage(1);
   };
 
+  // ✅ Fix 3: prioritise data[] from API response shape { success, message, data: [...] }
   const qrItems = Array.isArray(generatedQRs)
     ? generatedQRs
-    : generatedQRs?.qrs ?? generatedQRs?.data ?? [];
+    : generatedQRs?.data ?? generatedQRs?.qrs ?? [];
 
   const activeType = QR_TYPES.find((t) => t.key === qrType) ?? QR_TYPES[0];
   const locName = selectedLoc?.name ?? selectedLoc?.location_name ?? (selectedLoc ? `Location ${selectedLoc.id}` : null);
 
-  // pagination
-  const totalPages  = Math.ceil(qrItems.length / PAGE_SIZE);
-  const pagedItems  = qrItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.ceil(qrItems.length / PAGE_SIZE);
+  const pagedItems = qrItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const downloadAll = async () => {
     for (let i = 0; i < qrItems.length; i++) {
       const item = qrItems[i];
-      const code = item?.code ?? item?.id ?? item ?? `${qrType}-${i}`;
+      // ✅ Fix 2: use qrs_code in downloadAll
+      const code = item?.qrs_code ?? item?.code ?? item?.id ?? item ?? `${qrType}-${i}`;
       const url  = await makeDataUrl(code);
       triggerDownload(url, `${qrType}-${selectedLoc?.id}-${code}.png`);
       await new Promise((r) => setTimeout(r, 80));
