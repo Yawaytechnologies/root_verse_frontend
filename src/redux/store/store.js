@@ -20,6 +20,7 @@ import ccOperatorReducer from "../reducer/ccOperatorSlice";
 import transportOperatorReducer from "../reducer/transportOperatorSlice";
 import authReducer from "../reducer/adminLoginSlice";
 import crateListingReducer from "../reducer/crateListingSlice";
+import aquacultureQrReducer from "../reducer/aquacultureQRSlice"
 
 export const store = configureStore({
   reducer: {
@@ -43,5 +44,6 @@ export const store = configureStore({
     ccOperator: ccOperatorReducer,
     transportOperator: transportOperatorReducer,
     crateListing: crateListingReducer,
+    aquacultureQr: aquacultureQrReducer,
   },
 });

@@ -6,7 +6,8 @@ import brandLogo from "../../../assets/AquaLogo.jpg";
 import { LuLogs } from "react-icons/lu";
 import { IoWaterOutline } from "react-icons/io5";
 import { MdQrCodeScanner } from "react-icons/md";
-import { PiWavesLight } from "react-icons/pi";   // pond icon
+import { PiWavesLight } from "react-icons/pi";
+import { TbQrcode } from "react-icons/tb";   // ← NEW: QR generate icon
 
 const nav = [
   { to: "/admin/aqua-culture/aqua-dashboard", label: "Dashboard", icon: FiHome },
@@ -15,10 +16,11 @@ const nav = [
 
   { to: "/admin/aqua-culture/owner-approval",     label: "Owner Approval", icon: FiUser },
   { to: "/admin/aqua-culture/farm-pond-approval", label: "Farm Approval",  icon: IoWaterOutline },
-  { to: "/admin/aqua-culture/pond-approval",      label: "Pond Approval",  icon: PiWavesLight },   // ← new
+  { to: "/admin/aqua-culture/pond-approval",      label: "Pond Approval",  icon: PiWavesLight },
   { to: "/admin/aqua-culture/daily-log",          label: "Daily Log",      icon: LuLogs },
   { to: "/admin/aqua-culture/aqua-harvest",       label: "Harvest",        icon: FiCheckCircle },
   { to: "/admin/aqua-culture/aqua-crate",         label: "Crate",          icon: MdQrCodeScanner },
+  { to: "/admin/aqua-culture/aqua-qr",            label: "Generate QR",    icon: TbQrcode },  // ← NEW
 ];
 
 export default function AdminSidebar({

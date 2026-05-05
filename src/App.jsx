@@ -55,6 +55,7 @@ import PondApproval from './components/admin/aquaculture/PondApproval.jsx';
 import DailyLog from './components/admin/aquaculture/DailyLogs.jsx';
 import AquaHarvest from "../src/components/admin/aquaculture/AquaHarvest.jsx"
 import AquaCrate from "../src/components/admin/aquaculture/AquaCrate.jsx"
+import AquaQR from "../src/components/admin/aquaculture/AquaQR.jsx"  // ← NEW
 
 import MariLayout from './components/admin/mariculture/MariLayout';
 import MariDashboard from './components/admin/mariculture/MariDashboard';
@@ -92,11 +93,7 @@ export default function App() {
   return (
     <Routes>
       {/* ===== DEFAULT REDIRECT ===== */}
-      {/* Currently root goes to Admin Login */}
       <Route path='/' element={<Navigate to='/admin/login' replace />} />
-      {/* If you want user-side aqua default later:
-          <Route path='/' element={<Navigate to='/aquaculture/dashboard' replace />} />
-      */}
 
       {/* ===== ADMIN SIDE ROUTES ===== */}
 
@@ -112,17 +109,12 @@ export default function App() {
         <Route path='quality-checker' element={<QualityChecker />} />
         <Route path='crate-wild' element={<CrateQrWildGenerator />} />
         <Route path='quality-inspection' element={<QcInspectionTable />} />
-        
         <Route path='quality-inspection-logs' element={<QualityInspectionLogs />} />
-
-        {/* <Route path='landing-qc' element={<LandingQCPage />} />
-        <Route path='owner-register' element={<OwnerRegistration />} /> */}
         <Route path='qr-generator' element={<QrGeneratorPage />} />
         <Route path='vessel-owner' element={<VesselOwner />} />
         <Route path='trip-approval' element={<TripApproval />} />
         <Route path='fishing-methods' element={<FishingMethodsPage />} />
-         <Route path='location-creation' element={<LocationCreation />} />
-        <Route path="trip-approval/:id" element={<TripApprovalDetails />} />
+        <Route path='location-creation' element={<LocationCreation />} />
         <Route path="trip-approval/:id" element={<TripApprovalDetails />} />
         <Route path='species' element={<SpeciesManager />} />
       </Route>
@@ -136,9 +128,9 @@ export default function App() {
         <Route path='farm-pond-approval' element={<FarmApproval />} />
         <Route path='pond-approval' element={<PondApproval />} />
         <Route path='daily-log' element={<DailyLog />} />
-         <Route path='aqua-harvest' element={<AquaHarvest />} />
-          <Route path='aqua-crate' element={<AquaCrate />} />
-        
+        <Route path='aqua-harvest' element={<AquaHarvest />} />
+        <Route path='aqua-crate' element={<AquaCrate />} />
+        <Route path='aqua-qr' element={<AquaQR />} />  {/* ← NEW */}
       </Route>
 
       {/* Mariculture admin app */}
@@ -164,22 +156,14 @@ export default function App() {
         <Route path='center-operator-list' element={<CollectionCentreOperatorListing />} />
         <Route path='crate-listing' element={<CrateListing />} />
         <Route path='quality-checker-list' element={<QualityControllerListing />} />
-
       </Route>
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
       <Route path='/mariculture' element={<MaricultureLayout />}>
-        {/* default: /mariculture */}
         <Route index element={<MaricultureDashboard />} />
-
-        {/* also allow /mariculture/dashboard explicitly */}
         <Route path='dashboard' element={<MaricultureDashboard />} />
-
-        {/* Registry */}
         <Route path='farms' element={<FarmRegistry />} />
         <Route path='units' element={<CultivationUnits />} />
-
-        {/* Operations */}
         <Route path='growth' element={<GrowthMonitoring />} />
         <Route path='harvests' element={<HarvestManagement />} />
       </Route>
@@ -187,26 +171,18 @@ export default function App() {
       {/* ===== AQUACULTURE USER MODULE ===== */}
       <Route path='/aquaculture' element={<AquacultureLayout />}>
         <Route index element={<AquacultureDashboard />} />
-        {/* Dashboard */}
         <Route path='dashboard' element={<AquacultureDashboard />} />
-
-        {/* Pond list + details */}
         <Route path='ponds' element={<PondListPage />} />
         <Route path='ponds/:pondId' element={<PondDetailsPage />} />
-
-        {/* Harvest / crates / traceability */}
         <Route path='harvest-batches' element={<HarvestBatchPage />} />
         <Route path='crates' element={<CrateAssignmentPage />} />
         <Route path='traceability' element={<TraceabilityLookupPage />} />
-
-        {/* Daily logs */}
         <Route path='logs/feed' element={<FeedLogPage />} />
         <Route path='logs/water' element={<WaterLogPage />} />
         <Route path='logs/health' element={<HealthLogPage />} />
       </Route>
 
-      {/* ===== WILD CAPTURE USER CONSOLE (from HEAD) ===== */}
-      {/* Uses AppLayout inside each page, paths match your navItems */}
+      {/* ===== WILD CAPTURE USER CONSOLE ===== */}
       <Route path='/wild-capture' element={<WildCaptureUserDashboard />} />
       <Route path='/trips' element={<TripsPage />} />
       <Route path='/catch-logs' element={<CatchLogsPage />} />
