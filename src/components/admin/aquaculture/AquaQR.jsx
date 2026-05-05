@@ -76,7 +76,7 @@ function QRModal({ code, qrType, locationId, onClose }) {
 }
 
 // ─── QR Table Row ────────────────────────────────────────────
-function QRTableRow({ item, index, globalIndex, qrType, locationId, onPreview }) {
+function QRTableRow({ item, globalIndex, qrType, locationId, onPreview }) {
   const [dataUrl, setDataUrl] = useState(null);
   const code = item?.qrs_code ?? item?.code ?? item?.id ?? item ?? `${qrType}-${locationId}-${globalIndex + 1}`;
   const type = QR_TYPES.find((t) => t.key === qrType) ?? QR_TYPES[0];
@@ -199,7 +199,6 @@ export default function AquaQR() {
     setCurrentPage(1);
   };
 
-  // ✅ Fix 3: prioritise data[] from API response shape { success, message, data: [...] }
   const qrItems = Array.isArray(generatedQRs)
     ? generatedQRs
     : generatedQRs?.data ?? generatedQRs?.qrs ?? [];
@@ -213,7 +212,6 @@ export default function AquaQR() {
   const downloadAll = async () => {
     for (let i = 0; i < qrItems.length; i++) {
       const item = qrItems[i];
-      // ✅ Fix 2: use qrs_code in downloadAll
       const code = item?.qrs_code ?? item?.code ?? item?.id ?? item ?? `${qrType}-${i}`;
       const url  = await makeDataUrl(code);
       triggerDownload(url, `${qrType}-${selectedLoc?.id}-${code}.png`);
@@ -237,13 +235,37 @@ export default function AquaQR() {
             Pick a location, type &amp; count — download individually or all at once.
           </p>
         </div>
+
+        {/* Header New Batch — solid + pulsing when success */}
         {success && (
           <button onClick={handleReset}
-            className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs sm:text-sm font-semibold hover:border-slate-300 hover:shadow-sm transition-all">
+            className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg transition-all hover:opacity-90 animate-pulse"
+            style={{ background: activeType.accent }}>
             <TbRefresh className="w-4 h-4" /> New Batch
           </button>
         )}
       </div>
+
+      {/* ── Locked form nudge banner ── */}
+      {success && (
+        <div
+          className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold"
+          style={{ background: activeType.bg, borderColor: activeType.border, color: activeType.accent }}
+        >
+          <TbRefresh className="w-4 h-4 shrink-0 animate-spin" style={{ animationDuration: "2s" }} />
+          <span>
+            Form is locked — click{" "}
+            <button
+              onClick={handleReset}
+              className="underline underline-offset-2 font-extrabold hover:opacity-70 transition-opacity"
+              style={{ color: activeType.accent }}
+            >
+              New Batch
+            </button>{" "}
+            to generate a different set of QR codes.
+          </span>
+        </div>
+      )}
 
       {/* ── Config card ── */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 sm:p-6 mb-5">
@@ -350,8 +372,10 @@ export default function AquaQR() {
               )}
             </button>
           ) : (
+            /* In-form New Batch — solid + pulsing */
             <button onClick={handleReset}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:border-slate-300 bg-white transition-all">
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-md hover:opacity-90 transition-all animate-pulse"
+              style={{ background: activeType.accent }}>
               <TbRefresh className="w-4 h-4" /> New Batch
             </button>
           )}
@@ -406,7 +430,6 @@ export default function AquaQR() {
                   <QRTableRow
                     key={i}
                     item={item}
-                    index={i}
                     globalIndex={(currentPage - 1) * PAGE_SIZE + i}
                     qrType={qrType}
                     locationId={selectedLoc?.id}
