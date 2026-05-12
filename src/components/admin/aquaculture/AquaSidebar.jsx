@@ -3,7 +3,7 @@ import { NavLink, Link } from "react-router-dom";
 import { FiHome, FiX, FiGrid, FiUser, FiCheckCircle } from "react-icons/fi";
 import brandLogo from "../../../assets/AquaLogo.jpg";
 
-import { LuLogs } from "react-icons/lu";
+import { LuLogs,LuClipboardCheck } from "react-icons/lu";
 import { IoWaterOutline } from "react-icons/io5";
 import { MdQrCodeScanner } from "react-icons/md";
 import { PiWavesLight } from "react-icons/pi";
@@ -18,6 +18,7 @@ const nav = [
   { to: "/admin/aqua-culture/farm-pond-approval", label: "Farm Approval",  icon: IoWaterOutline },
   { to: "/admin/aqua-culture/pond-approval",      label: "Pond Approval",  icon: PiWavesLight },
   { to: "/admin/aqua-culture/daily-log",          label: "Daily Log",      icon: LuLogs },
+  { to: "/admin/aqua-culture/culture-cycle-approval",          label:"Culture Cycle Approval",      icon: LuClipboardCheck },
   { to: "/admin/aqua-culture/aqua-harvest",       label: "Harvest",        icon: FiCheckCircle },
   { to: "/admin/aqua-culture/aqua-crate",         label: "Crate",          icon: MdQrCodeScanner },
   { to: "/admin/aqua-culture/aqua-qr",            label: "Generate QR",    icon: TbQrcode },  // ← NEW
