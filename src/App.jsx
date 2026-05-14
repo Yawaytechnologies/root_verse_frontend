@@ -56,7 +56,8 @@ import DailyLog from "./components/admin/aquaculture/DailyLogs.jsx";
 import AquaHarvest from "../src/components/admin/aquaculture/AquaHarvest.jsx";
 import AquaCrate from "../src/components/admin/aquaculture/AquaCrate.jsx";
 import AquaQR from "../src/components/admin/aquaculture/AquaQR.jsx"; // ← NEW
-import CultureCycleApproval from "../src/components/admin/aquaculture/CultureCycle.jsx"
+import CultureCycleApproval from "../src/components/admin/aquaculture/CultureCycle.jsx";
+import PondStockingByCultureCycle from "./components/admin/aquaculture/PondStockingCycle.jsx";
 
 import MariLayout from "./components/admin/mariculture/MariLayout";
 import MariDashboard from "./components/admin/mariculture/MariDashboard";
@@ -138,6 +139,10 @@ export default function App() {
           path="culture-cycle-approval"
           element={<CultureCycleApproval />}
         />
+         <Route
+    path="culture-cycle-approval/:culturecycleId/pond-stocking"
+    element={<PondStockingByCultureCycle />}
+  />
       </Route>
 
       {/* Mariculture admin app */}

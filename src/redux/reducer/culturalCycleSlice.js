@@ -2,16 +2,29 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchAllCultureCycles,
   updateCultureCycleVerificationStatus,
+  fetchPondStockingByCultureCycleId,
 } from "../action/cultureCycleAction";
 
 const initialState = {
   cultureCycles: [],
   selectedCultureCycle: null,
+
+  pondStocking: [],
+  pondStockingCultureCycleId: null,
+  pondStockingLoading: false,
+  pondStockingError: null,
+
   loading: false,
   updating: false,
   updatingId: null,
   error: null,
   successMessage: null,
+};
+
+const normalizePondStocking = (payload) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return [payload];
 };
 
 const culturalCycleSlice = createSlice({
@@ -29,6 +42,14 @@ const culturalCycleSlice = createSlice({
     clearCultureCycleMessages: (state) => {
       state.error = null;
       state.successMessage = null;
+      state.pondStockingError = null;
+    },
+
+    clearPondStocking: (state) => {
+      state.pondStocking = [];
+      state.pondStockingCultureCycleId = null;
+      state.pondStockingError = null;
+      state.pondStockingLoading = false;
     },
   },
 
@@ -97,6 +118,26 @@ const culturalCycleSlice = createSlice({
         state.updating = false;
         state.updatingId = null;
         state.error = action.payload || "Failed to update culture cycle status";
+      })
+
+      .addCase(fetchPondStockingByCultureCycleId.pending, (state, action) => {
+        state.pondStockingLoading = true;
+        state.pondStockingError = null;
+        state.pondStockingCultureCycleId = action.meta.arg;
+        state.pondStocking = [];
+      })
+
+      .addCase(fetchPondStockingByCultureCycleId.fulfilled, (state, action) => {
+        state.pondStockingLoading = false;
+        state.pondStockingCultureCycleId = action.payload.culturecycle_id;
+        state.pondStocking = normalizePondStocking(action.payload.data);
+      })
+
+      .addCase(fetchPondStockingByCultureCycleId.rejected, (state, action) => {
+        state.pondStockingLoading = false;
+        state.pondStocking = [];
+        state.pondStockingError =
+          action.payload || "Failed to fetch pond stocking";
       });
   },
 });
@@ -105,6 +146,7 @@ export const {
   setSelectedCultureCycle,
   clearSelectedCultureCycle,
   clearCultureCycleMessages,
+  clearPondStocking,
 } = culturalCycleSlice.actions;
 
 export default culturalCycleSlice.reducer;

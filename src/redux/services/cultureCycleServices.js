@@ -35,9 +35,7 @@ const getErrorMessage = (error) => {
 };
 
 const cleanStatus = (status) => {
-  return String(status || "")
-    .trim()
-    .toUpperCase();
+  return String(status || "").trim().toUpperCase();
 };
 
 export const cultureCycleService = {
@@ -52,14 +50,24 @@ export const cultureCycleService = {
 
   updateVerificationStatus: async ({ id, newStatus, remarks }) => {
     try {
-      const finalStatus = cleanStatus(newStatus);
-
       const response = await api.put(
         `/api/aquaculture/culture-cycles/${id}/verification-status`,
         {
-          newStatus: finalStatus,
+          newStatus: cleanStatus(newStatus),
           remarks: remarks || "Verified by reviewer",
         }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  getPondStockingByCultureCycleId: async (culturecycle_id) => {
+    try {
+      const response = await api.get(
+        `/api/aquaculture/pond-stocking/culturecycle/${culturecycle_id}`
       );
 
       return response.data;

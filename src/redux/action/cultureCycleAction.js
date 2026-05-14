@@ -34,3 +34,23 @@ export const updateCultureCycleVerificationStatus = createAsyncThunk(
     }
   }
 );
+
+export const fetchPondStockingByCultureCycleId = createAsyncThunk(
+  "cultureCycleApproval/fetchPondStockingByCultureCycleId",
+  async (culturecycle_id, { rejectWithValue }) => {
+    try {
+      const response =
+        await cultureCycleService.getPondStockingByCultureCycleId(
+          culturecycle_id
+        );
+
+      return {
+        culturecycle_id,
+        data: response?.data ?? response,
+        message: response?.message || "Pond stocking fetched successfully",
+      };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
