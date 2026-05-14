@@ -1,6 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, Search, RefreshCw, X, CalendarDays, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  Search,
+  RefreshCw,
+  X,
+  CalendarDays,
+  Lock,
+  Maximize2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Table2,
+} from "lucide-react";
 
 import {
   fetchAllCultureCycles,
@@ -14,6 +27,16 @@ import {
 } from "../../../redux/reducer/culturalCycleSlice";
 
 const STATUS_OPTIONS = ["PENDING", "ACTIVE"];
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
+
+const getTotalPages = (items, pageSize) => {
+  return Math.max(1, Math.ceil((items?.length || 0) / pageSize));
+};
+
+const paginateList = (items, page, pageSize) => {
+  const startIndex = (page - 1) * pageSize;
+  return (items || []).slice(startIndex, startIndex + pageSize);
+};
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -90,6 +113,7 @@ const getSearchText = (cycle) => {
 
 const CultureCycleApproval = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const {
     cultureCycles,
@@ -102,6 +126,12 @@ const CultureCycleApproval = () => {
   } = useSelector((state) => state.cultureCycleApproval);
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [pendingPage, setPendingPage] = useState(1);
+  const [activePage, setActivePage] = useState(1);
+
+  const [pendingPageSize, setPendingPageSize] = useState(5);
+  const [activePageSize, setActivePageSize] = useState(5);
 
   useEffect(() => {
     dispatch(fetchAllCultureCycles());
@@ -139,7 +169,42 @@ const CultureCycleApproval = () => {
     );
   }, [filteredCycles]);
 
-  const handleStatusChange = async (id, newStatus) => {
+  const pendingTotalPages = useMemo(() => {
+    return getTotalPages(pendingCycles, pendingPageSize);
+  }, [pendingCycles, pendingPageSize]);
+
+  const activeTotalPages = useMemo(() => {
+    return getTotalPages(activeCycles, activePageSize);
+  }, [activeCycles, activePageSize]);
+
+  const paginatedPendingCycles = useMemo(() => {
+    return paginateList(pendingCycles, pendingPage, pendingPageSize);
+  }, [pendingCycles, pendingPage, pendingPageSize]);
+
+  const paginatedActiveCycles = useMemo(() => {
+    return paginateList(activeCycles, activePage, activePageSize);
+  }, [activeCycles, activePage, activePageSize]);
+
+  useEffect(() => {
+    setPendingPage(1);
+    setActivePage(1);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (pendingPage > pendingTotalPages) {
+      setPendingPage(pendingTotalPages);
+    }
+  }, [pendingPage, pendingTotalPages]);
+
+  useEffect(() => {
+    if (activePage > activeTotalPages) {
+      setActivePage(activeTotalPages);
+    }
+  }, [activePage, activeTotalPages]);
+
+  const handleStatusChange = async (id, newStatus, currentStatus) => {
+    if (normalizeStatus(newStatus) === normalizeStatus(currentStatus)) return;
+
     const result = await dispatch(
       updateCultureCycleVerificationStatus({
         id,
@@ -156,11 +221,20 @@ const CultureCycleApproval = () => {
     }
   };
 
+  const handleOpenPondStocking = (cycle) => {
+    navigate(
+      `/admin/aqua-culture/culture-cycle-approval/${cycle.id}/pond-stocking`,
+      {
+        state: { cycle },
+      }
+    );
+  };
+
   return (
     <div className="w-full bg-slate-100 px-3 py-3 text-sm">
       <div className="w-full space-y-4">
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-500">
                 Aquaculture Ops
@@ -221,11 +295,21 @@ const CultureCycleApproval = () => {
           title="Pending Culture Cycles"
           badge="PENDING"
           count={pendingCycles.length}
-          cycles={pendingCycles}
+          totalCount={pendingCycles.length}
+          cycles={paginatedPendingCycles}
           loading={loading}
           updating={updating}
           updatingId={updatingId}
+          currentPage={pendingPage}
+          totalPages={pendingTotalPages}
+          pageSize={pendingPageSize}
+          onPageChange={setPendingPage}
+          onPageSizeChange={(value) => {
+            setPendingPageSize(Number(value));
+            setPendingPage(1);
+          }}
           onView={(cycle) => dispatch(setSelectedCultureCycle(cycle))}
+          onPondStocking={handleOpenPondStocking}
           onStatusChange={handleStatusChange}
           type="pending"
         />
@@ -234,11 +318,21 @@ const CultureCycleApproval = () => {
           title="Active Culture Cycles"
           badge="ACTIVE"
           count={activeCycles.length}
-          cycles={activeCycles}
+          totalCount={activeCycles.length}
+          cycles={paginatedActiveCycles}
           loading={loading}
           updating={updating}
           updatingId={updatingId}
+          currentPage={activePage}
+          totalPages={activeTotalPages}
+          pageSize={activePageSize}
+          onPageChange={setActivePage}
+          onPageSizeChange={(value) => {
+            setActivePageSize(Number(value));
+            setActivePage(1);
+          }}
           onView={(cycle) => dispatch(setSelectedCultureCycle(cycle))}
+          onPondStocking={handleOpenPondStocking}
           onStatusChange={handleStatusChange}
           type="active"
         />
@@ -261,11 +355,18 @@ const CycleTable = ({
   title,
   badge,
   count,
+  totalCount,
   cycles,
   loading,
   updating,
   updatingId,
+  currentPage,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   onView,
+  onPondStocking,
   onStatusChange,
   type,
 }) => {
@@ -276,7 +377,6 @@ const CycleTable = ({
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div>
           <h2 className="text-sm font-black text-slate-900">{title}</h2>
-
           <p className="text-[11px] font-bold text-slate-500">
             {count} culture cycle{count === 1 ? "" : "s"}
           </p>
@@ -293,8 +393,103 @@ const CycleTable = ({
         </span>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left">
+      <div className="block md:hidden">
+        {loading ? (
+          <LoadingBlock text="Loading culture cycles..." />
+        ) : cycles.length === 0 ? (
+          <EmptyBlock text="No culture cycles found." />
+        ) : (
+          <div className="space-y-3 p-3">
+            {cycles.map((cycle) => {
+              const status = normalizeStatus(cycle?.verification_status);
+              const isUpdatingThis =
+                updating && Number(updatingId) === Number(cycle.id);
+
+              return (
+                <div
+                  key={cycle.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate rounded-full bg-white px-2.5 py-1 font-mono text-[10px] font-bold text-slate-600">
+                        {cycle?.culture_code || "-"}
+                      </p>
+
+                      <h3 className="mt-2 text-sm font-black text-slate-900">
+                        {getPondName(cycle)}
+                      </h3>
+
+                      <p className="mt-0.5 truncate font-mono text-[10px] font-bold text-slate-400">
+                        {getPondCode(cycle)}
+                      </p>
+                    </div>
+
+                    {isActiveTable ? (
+                      <span
+                        className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-black ${statusClass(
+                          status
+                        )}`}
+                      >
+                        <Lock size={13} />
+                        {status}
+                      </span>
+                    ) : (
+                      <select
+                        value={status}
+                        disabled={isUpdatingThis}
+                        onChange={(event) =>
+                          onStatusChange(cycle.id, event.target.value, status)
+                        }
+                        className={`h-8 shrink-0 rounded-lg border px-2.5 text-[11px] font-black outline-none ${statusClass(
+                          status
+                        )} disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        {STATUS_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    <MiniInfo label="Farm" value={getFarmName(cycle)} />
+                    <MiniInfo
+                      label="Period"
+                      value={`${formatDate(cycle?.start_date)} - ${formatDate(
+                        cycle?.end_date
+                      )}`}
+                    />
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onView(cycle)}
+                      className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-sky-500 px-3 text-[11px] font-black text-white hover:bg-sky-600"
+                    >
+                      <Eye size={14} />
+                      View
+                    </button>
+
+                    <button
+                      onClick={() => onPondStocking(cycle)}
+                      className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-indigo-500 px-3 text-[11px] font-black text-white hover:bg-indigo-600"
+                    >
+                      <Table2 size={14} />
+                      Stocking
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[840px] text-left">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               <Th>Culture / Pond</Th>
@@ -308,20 +503,14 @@ const CycleTable = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" className="px-4 py-8 text-center">
-                  <div className="mx-auto flex w-fit items-center gap-2 rounded-xl bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500">
-                    <RefreshCw size={15} className="animate-spin" />
-                    Loading...
-                  </div>
+                <td colSpan="5">
+                  <LoadingBlock text="Loading culture cycles..." />
                 </td>
               </tr>
             ) : cycles.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="px-4 py-8 text-center text-xs font-bold text-slate-400"
-                >
-                  No culture cycles found.
+                <td colSpan="5">
+                  <EmptyBlock text="No culture cycles found." />
                 </td>
               </tr>
             ) : (
@@ -381,7 +570,7 @@ const CycleTable = ({
                           value={status}
                           disabled={isUpdatingThis}
                           onChange={(event) =>
-                            onStatusChange(cycle.id, event.target.value)
+                            onStatusChange(cycle.id, event.target.value, status)
                           }
                           className={`h-8 rounded-lg border px-2.5 text-[11px] font-black outline-none ${statusClass(
                             status
@@ -397,13 +586,23 @@ const CycleTable = ({
                     </td>
 
                     <td className="px-4 py-3 align-middle">
-                      <button
-                        onClick={() => onView(cycle)}
-                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-sky-500 px-3 text-[11px] font-black text-white hover:bg-sky-600"
-                      >
-                        <Eye size={14} />
-                        View
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => onView(cycle)}
+                          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-sky-500 px-3 text-[11px] font-black text-white hover:bg-sky-600"
+                        >
+                          <Eye size={14} />
+                          View
+                        </button>
+
+                        <button
+                          onClick={() => onPondStocking(cycle)}
+                          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg bg-indigo-500 px-3 text-[11px] font-black text-white hover:bg-indigo-600"
+                        >
+                          <Table2 size={14} />
+                          Stocking
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -411,6 +610,121 @@ const CycleTable = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      {!loading && totalCount > 0 && (
+        <PaginationControls
+          totalCount={totalCount}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      )}
+    </div>
+  );
+};
+
+const PaginationControls = ({
+  totalCount,
+  currentPage,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}) => {
+  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalCount);
+
+  const maxButtons = 5;
+  const startPage = Math.max(
+    1,
+    Math.min(currentPage - 2, totalPages - maxButtons + 1)
+  );
+  const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+  const pageNumbers = [];
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pageNumbers.push(page);
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="text-[11px] font-bold text-slate-500">
+        Showing <span className="font-black text-slate-800">{startItem}</span>
+        {" - "}
+        <span className="font-black text-slate-800">{endItem}</span>
+        {" of "}
+        <span className="font-black text-slate-800">{totalCount}</span>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <select
+          value={pageSize}
+          onChange={(event) => onPageSizeChange(event.target.value)}
+          className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-black text-slate-700 outline-none focus:border-sky-400"
+        >
+          {PAGE_SIZE_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option} / page
+            </option>
+          ))}
+        </select>
+
+        <div className="flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-black text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            First
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-black text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Prev
+          </button>
+
+          {pageNumbers.map((page) => (
+            <button
+              key={page}
+              type="button"
+              onClick={() => onPageChange(page)}
+              className={`h-8 min-w-8 rounded-lg border px-2 text-[11px] font-black ${
+                page === currentPage
+                  ? "border-sky-500 bg-sky-500 text-white"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-black text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onPageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-black text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Last
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -434,6 +748,38 @@ const DateCell = ({ label, value }) => {
   );
 };
 
+const MiniInfo = ({ label, value }) => {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+      <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-xs font-bold text-slate-800">
+        {value || "-"}
+      </p>
+    </div>
+  );
+};
+
+const LoadingBlock = ({ text }) => {
+  return (
+    <div className="px-4 py-8 text-center">
+      <div className="mx-auto flex w-fit items-center gap-2 rounded-xl bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500">
+        <RefreshCw size={15} className="animate-spin" />
+        {text}
+      </div>
+    </div>
+  );
+};
+
+const EmptyBlock = ({ text }) => {
+  return (
+    <div className="px-4 py-8 text-center text-xs font-bold text-slate-400">
+      {text}
+    </div>
+  );
+};
+
 const CycleDetailsModal = ({
   cycle,
   updating,
@@ -444,32 +790,32 @@ const CycleDetailsModal = ({
   const status = normalizeStatus(cycle?.verification_status);
   const isPending = status === "PENDING";
   const isUpdatingThis = updating && Number(updatingId) === Number(cycle.id);
+  const [fullViewImage, setFullViewImage] = useState(null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-5 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
-          <div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-3 py-4 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-500">
               Culture Cycle Details
             </p>
 
-            <h3 className="mt-1 text-base font-black text-slate-900">
+            <h3 className="mt-1 truncate text-base font-black text-slate-900">
               {cycle?.culture_code || "-"}
             </h3>
           </div>
 
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="max-h-[68vh] overflow-y-auto p-5">
+        <div className="max-h-[70vh] overflow-y-auto p-4 sm:p-5">
           <SectionTitle title="Basic Details" />
-
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Culture Code" value={cycle?.culture_code} />
             <DetailCard label="Status" value={status} />
@@ -478,7 +824,6 @@ const CycleDetailsModal = ({
           </div>
 
           <SectionTitle title="Owner Details" />
-
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Owner Name" value={cycle?.user?.username} />
             <DetailCard label="Phone" value={cycle?.user?.phone_no} />
@@ -487,32 +832,52 @@ const CycleDetailsModal = ({
           </div>
 
           <SectionTitle title="Farm Details" />
-
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Farm Name" value={getFarmName(cycle)} />
             <DetailCard label="Farm Code" value={getFarmCode(cycle)} />
-            <DetailCard label="Farm Area" value={cycle?.farm?.farm_area_acres ? `${cycle.farm.farm_area_acres} acres` : "-"} />
+            <DetailCard
+              label="Farm Area"
+              value={
+                cycle?.farm?.farm_area_acres
+                  ? `${cycle.farm.farm_area_acres} acres`
+                  : "-"
+              }
+            />
             <DetailCard label="Water Source" value={cycle?.farm?.water_source} />
             <DetailCard label="Farm Address" value={cycle?.farm?.address} />
-            <DetailCard label="Farm Gate Latitude" value={cycle?.farm?.farm_gate_latitude} />
-            <DetailCard label="Farm Gate Longitude" value={cycle?.farm?.farm_gate_longitude} />
+            <DetailCard
+              label="Farm Gate Latitude"
+              value={cycle?.farm?.farm_gate_latitude}
+            />
+            <DetailCard
+              label="Farm Gate Longitude"
+              value={cycle?.farm?.farm_gate_longitude}
+            />
           </div>
 
           <SectionTitle title="Pond Details" />
-
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Pond Name" value={getPondName(cycle)} />
             <DetailCard label="Pond Code" value={getPondCode(cycle)} />
             <DetailCard label="Pond Type" value={cycle?.pond?.pond_type} />
-            <DetailCard label="Water Spread Area" value={cycle?.pond?.water_spread_area_acres ? `${cycle.pond.water_spread_area_acres} acres` : "-"} />
+            <DetailCard
+              label="Water Spread Area"
+              value={
+                cycle?.pond?.water_spread_area_acres
+                  ? `${cycle.pond.water_spread_area_acres} acres`
+                  : "-"
+              }
+            />
             <DetailCard label="Volume" value={cycle?.pond?.volume} />
             <DetailCard label="Pond GPS" value={cycle?.pond?.pond_gps} />
             <DetailCard label="Pond Status" value={cycle?.pond?.pond_status} />
-            <DetailCard label="Pond Verification" value={cycle?.pond?.verification_status} />
+            <DetailCard
+              label="Pond Verification"
+              value={cycle?.pond?.verification_status}
+            />
           </div>
 
           <SectionTitle title="Images" />
-
           {cycle?.images?.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cycle.images.map((image) => (
@@ -520,14 +885,27 @@ const CycleDetailsModal = ({
                   key={image.id}
                   className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
                 >
-                  <img
-                    src={image.image_url}
-                    alt={image.description || "Culture cycle"}
-                    className="h-40 w-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setFullViewImage(image)}
+                    className="group relative block w-full overflow-hidden bg-slate-100"
+                  >
+                    <img
+                      src={image.image_url}
+                      alt={image.description || "Culture cycle"}
+                      className="h-40 w-full object-cover transition duration-200 group-hover:scale-105"
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+                      }}
+                    />
+
+                    <div className="absolute inset-0 hidden items-center justify-center bg-slate-950/45 group-hover:flex">
+                      <span className="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-800 shadow">
+                        <Maximize2 size={14} />
+                        Full View
+                      </span>
+                    </div>
+                  </button>
 
                   <div className="p-3">
                     <p className="text-xs font-bold text-slate-700">
@@ -548,12 +926,14 @@ const CycleDetailsModal = ({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-5 sm:py-4">
           {isPending ? (
             <select
               value={status}
               disabled={isUpdatingThis}
-              onChange={(event) => onStatusChange(cycle.id, event.target.value)}
+              onChange={(event) =>
+                onStatusChange(cycle.id, event.target.value, status)
+              }
               className={`h-9 rounded-lg border px-3 text-xs font-black outline-none ${statusClass(
                 status
               )} disabled:cursor-not-allowed disabled:opacity-60`}
@@ -581,6 +961,109 @@ const CycleDetailsModal = ({
           >
             Close
           </button>
+        </div>
+      </div>
+
+      {fullViewImage && (
+        <FullImageView
+          image={fullViewImage}
+          onClose={() => setFullViewImage(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+const FullImageView = ({ image, onClose }) => {
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 4;
+  const ZOOM_STEP = 0.25;
+
+  const [zoom, setZoom] = useState(1);
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(MAX_ZOOM, Number((prev + ZOOM_STEP).toFixed(2))));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(MIN_ZOOM, Number((prev - ZOOM_STEP).toFixed(2))));
+  };
+
+  const handleResetZoom = () => {
+    setZoom(1);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 px-3 py-4">
+      <div className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <p className="truncate text-xs font-black text-slate-900">
+              {image?.description || "Culture cycle image"}
+            </p>
+
+            <p className="mt-0.5 break-all text-[10px] font-semibold text-slate-400">
+              {image?.storage_path || image?.image_url}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              disabled={zoom <= MIN_ZOOM}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+              title="Zoom out"
+            >
+              <ZoomOut size={16} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResetZoom}
+              className="flex h-8 items-center justify-center gap-1 rounded-lg bg-slate-100 px-3 text-[11px] font-black text-slate-700 hover:bg-slate-200"
+              title="Reset zoom"
+            >
+              <RotateCcw size={14} />
+              {Math.round(zoom * 100)}%
+            </button>
+
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              disabled={zoom >= MAX_ZOOM}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+              title="Zoom in"
+            >
+              <ZoomIn size={16} />
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto bg-black p-4">
+          <div className="flex min-h-full min-w-full items-center justify-center">
+            <img
+              src={image?.image_url}
+              alt={image?.description || "Culture cycle full view"}
+              className="select-none object-contain transition-transform duration-200"
+              style={{
+                transform: `scale(${zoom})`,
+                transformOrigin: "center center",
+                maxHeight: zoom === 1 ? "80vh" : "none",
+                maxWidth: zoom === 1 ? "100%" : "none",
+              }}
+              draggable={false}
+            />
+          </div>
         </div>
       </div>
     </div>
