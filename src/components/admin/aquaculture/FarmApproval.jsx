@@ -82,6 +82,14 @@ function show(value) {
   return String(value);
 }
 
+function getFarmQr(farm) {
+  return farm?.farm_qrs || "—";
+}
+
+function getFarmCode(farm) {
+  return farm?.farm_code || "—";
+}
+
 function formatDate(value) {
   if (empty(value)) return "—";
 
@@ -171,7 +179,7 @@ function FarmDetailModal({ farm, onClose }) {
             </p>
 
             <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
-              {farm.farm_code || `#${farm.id}`}
+              {getFarmQr(farm)}
             </p>
           </div>
 
@@ -187,9 +195,8 @@ function FarmDetailModal({ farm, onClose }) {
         <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 py-5">
           <Section title="Farm Details">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <DetailRow label="DB ID" value={farm.id} mono />
-              <DetailRow label="Farm ID" value={farm.farm_code} mono />
               <DetailRow label="Farm QR" value={farm.farm_qrs} mono />
+              <DetailRow label="Farm Code" value={farm.farm_code} mono />
               <DetailRow label="Farm Name" value={farm.name} />
               <DetailRow label="Address" value={farm.farm_address} />
               <DetailRow
@@ -200,10 +207,9 @@ function FarmDetailModal({ farm, onClose }) {
             </div>
           </Section>
 
-          <Section title="Owner / User">
+          <Section title="Owner">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <DetailRow label="Owner ID" value={farm.owner_id} mono />
-              <DetailRow label="User ID" value={farm.user_id} mono />
               <DetailRow label="Username" value={farm.username} />
             </div>
           </Section>
@@ -387,7 +393,6 @@ export default function FarmList() {
 
     return allFarms.filter((farm) =>
       [
-        farm.id,
         farm.farm_code,
         farm.farm_qrs,
         farm.name,
@@ -395,7 +400,6 @@ export default function FarmList() {
         farm.total_area,
         farm.water_source,
         farm.owner_id,
-        farm.user_id,
         farm.username,
         farm.technician_name,
         farm.technician_phone,
@@ -466,7 +470,9 @@ export default function FarmList() {
               <p className="text-xs text-slate-500">
                 {loading
                   ? "Loading…"
-                  : `${filtered.length} farm${filtered.length !== 1 ? "s" : ""}`}
+                  : `${filtered.length} farm${
+                      filtered.length !== 1 ? "s" : ""
+                    }`}
               </p>
             </div>
 
@@ -526,7 +532,9 @@ export default function FarmList() {
             </p>
 
             <p className="text-xs text-slate-400">
-              {search ? "Try a different search term." : "No farms registered yet."}
+              {search
+                ? "Try a different search term."
+                : "No farms registered yet."}
             </p>
           </div>
         )}
@@ -540,10 +548,6 @@ export default function FarmList() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-slate-800">
                         {farm.name || "—"}
-                      </p>
-
-                      <p className="mt-0.5 truncate font-mono text-[11px] text-slate-500">
-                        {farm.farm_code || `#${farm.id}`}
                       </p>
                     </div>
 
@@ -559,6 +563,13 @@ export default function FarmList() {
                   </div>
 
                   <div className="mt-3 space-y-1 text-xs">
+                    <p className="truncate">
+                      <span className="text-slate-400">Farm QR: </span>
+                      <span className="font-mono text-slate-700">
+                        {getFarmQr(farm)}
+                      </span>
+                    </p>
+
                     <p className="truncate">
                       <span className="text-slate-400">Address: </span>
                       <span className="text-slate-700">
@@ -580,38 +591,44 @@ export default function FarmList() {
             <div className="hidden overflow-hidden lg:block">
               <table className="w-full table-fixed border-separate border-spacing-0 text-sm">
                 <colgroup>
-                  <col className="w-[34%]" />
-                  <col className="w-[38%]" />
-                  <col className="w-[14%]" />
+                  <col className="w-[24%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[30%]" />
+                  <col className="w-[10%]" />
                   <col className="w-[14%]" />
                 </colgroup>
 
                 <thead>
                   <tr>
-                    {["FARM", "ADDRESS", "AREA", "ACTIONS"].map((head) => (
-                      <th
-                        key={head}
-                        className="border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400"
-                      >
-                        {head}
-                      </th>
-                    ))}
+                    {["FARM", "FARM QR", "ADDRESS", "AREA", "ACTIONS"].map(
+                      (head) => (
+                        <th
+                          key={head}
+                          className="border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400"
+                        >
+                          {head}
+                        </th>
+                      )
+                    )}
                   </tr>
                 </thead>
 
                 <tbody>
                   {paginated.map((farm) => (
-                    <tr key={farm.id} className="transition hover:bg-slate-50/60">
+                    <tr
+                      key={farm.id}
+                      className="transition hover:bg-slate-50/60"
+                    >
                       <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-800">
-                            {farm.name || "—"}
-                          </p>
+                        <p className="truncate font-semibold text-slate-800">
+                          {farm.name || "—"}
+                        </p>
+                      </td>
 
-                          <p className="mt-1 truncate font-mono text-[11px] text-slate-500">
-                            {farm.farm_code || `#${farm.id}`}
-                          </p>
-                        </div>
+                      <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
+                        <p className="truncate font-mono text-[11px] font-semibold text-slate-600">
+                          {getFarmQr(farm)}
+                        </p>
                       </td>
 
                       <td className="border-b border-slate-100 px-4 py-3.5 align-middle">

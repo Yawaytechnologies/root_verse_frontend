@@ -76,20 +76,60 @@ const statusClass = (status) => {
   return "border-amber-200 bg-amber-50 text-amber-700";
 };
 
+const cleanValue = (value) => {
+  if (value === null || value === undefined) return "-";
+
+  const text = String(value).trim();
+  return text || "-";
+};
+
 const getPondName = (cycle) => {
-  return cycle?.pond_name || cycle?.pond?.pond_name || "-";
+  return cleanValue(cycle?.pond_name || cycle?.pond?.pond_name);
 };
 
 const getPondCode = (cycle) => {
-  return cycle?.pond_code || cycle?.pond?.pond_id || cycle?.pond?.qrs_code || "-";
+  return cleanValue(
+    cycle?.pond_code || cycle?.pond?.pond_id || cycle?.pond?.qrs_code
+  );
 };
 
 const getFarmName = (cycle) => {
-  return cycle?.farm_name || cycle?.farm?.farm_name || "-";
+  return cleanValue(cycle?.farm_name || cycle?.farm?.farm_name);
 };
 
 const getFarmCode = (cycle) => {
-  return cycle?.farm_code || cycle?.farm?.farm_id || cycle?.farm?.farm_qrs || "-";
+  return cleanValue(
+    cycle?.farm_code ||
+      cycle?.farm?.farm_id ||
+      cycle?.farm?.farm_qrs ||
+      cycle?.farm?.qrs_code ||
+      cycle?.farm?.code
+  );
+};
+
+const getFarmArea = (cycle) => {
+  const area = cycle?.farm_area_acres || cycle?.farm?.farm_area_acres;
+  return area ? `${area} acres` : "-";
+};
+
+const getWaterSource = (cycle) => {
+  return cleanValue(cycle?.water_source || cycle?.farm?.water_source);
+};
+
+const getFarmAddress = (cycle) => {
+  return cleanValue(cycle?.farm_address || cycle?.farm?.address);
+};
+
+const getFarmGateLatitude = (cycle) => {
+  return cleanValue(
+    cycle?.farm_gate_latitude || cycle?.farm?.farm_gate_latitude
+  );
+};
+
+const getFarmGateLongitude = (cycle) => {
+  return cleanValue(
+    cycle?.farm_gate_longitude || cycle?.farm?.farm_gate_longitude
+  );
 };
 
 const getSearchText = (cycle) => {
@@ -103,8 +143,10 @@ const getSearchText = (cycle) => {
     cycle?.user?.phone_no,
     cycle?.pond?.pond_name,
     cycle?.pond?.pond_id,
+    cycle?.pond?.qrs_code,
     cycle?.farm?.farm_name,
     cycle?.farm?.farm_id,
+    cycle?.farm?.farm_qrs,
   ]
     .filter(Boolean)
     .join(" ")
@@ -412,17 +454,13 @@ const CycleTable = ({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate rounded-full bg-white px-2.5 py-1 font-mono text-[10px] font-bold text-slate-600">
-                        {cycle?.culture_code || "-"}
+                      <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
+                        Pond
                       </p>
 
-                      <h3 className="mt-2 text-sm font-black text-slate-900">
+                      <h3 className="mt-1 break-words text-sm font-black text-slate-900">
                         {getPondName(cycle)}
                       </h3>
-
-                      <p className="mt-0.5 truncate font-mono text-[10px] font-bold text-slate-400">
-                        {getPondCode(cycle)}
-                      </p>
                     </div>
 
                     {isActiveTable ? (
@@ -456,6 +494,7 @@ const CycleTable = ({
 
                   <div className="mt-3 grid grid-cols-1 gap-2">
                     <MiniInfo label="Farm" value={getFarmName(cycle)} />
+                    <MiniInfo label="Farm Code" value={getFarmCode(cycle)} />
                     <MiniInfo
                       label="Period"
                       value={`${formatDate(cycle?.start_date)} - ${formatDate(
@@ -525,25 +564,17 @@ const CycleTable = ({
                     className="border-b border-slate-100 hover:bg-slate-50"
                   >
                     <td className="px-4 py-3 align-middle">
-                      <div className="max-w-[185px] truncate rounded-full bg-slate-100 px-2.5 py-1 font-mono text-[10px] font-bold text-slate-600">
-                        {cycle?.culture_code || "-"}
-                      </div>
-
-                      <div className="mt-1.5 text-xs font-black text-slate-900">
+                      <div className="max-w-[220px] truncate text-xs font-black text-slate-900">
                         {getPondName(cycle)}
-                      </div>
-
-                      <div className="mt-0.5 max-w-[190px] truncate font-mono text-[10px] font-bold text-slate-400">
-                        {getPondCode(cycle)}
                       </div>
                     </td>
 
                     <td className="px-4 py-3 align-middle">
-                      <div className="max-w-[180px] truncate text-xs font-black text-slate-900">
+                      <div className="max-w-[220px] truncate text-xs font-black text-slate-900">
                         {getFarmName(cycle)}
                       </div>
 
-                      <div className="mt-0.5 max-w-[180px] truncate font-mono text-[10px] font-bold text-slate-400">
+                      <div className="mt-0.5 max-w-[220px] truncate font-mono text-[10px] font-bold text-slate-400">
                         {getFarmCode(cycle)}
                       </div>
                     </td>
@@ -754,6 +785,7 @@ const MiniInfo = ({ label, value }) => {
       <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-400">
         {label}
       </p>
+
       <p className="mt-1 break-words text-xs font-bold text-slate-800">
         {value || "-"}
       </p>
@@ -819,7 +851,10 @@ const CycleDetailsModal = ({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Culture Code" value={cycle?.culture_code} />
             <DetailCard label="Status" value={status} />
-            <DetailCard label="Start Date" value={formatDate(cycle?.start_date)} />
+            <DetailCard
+              label="Start Date"
+              value={formatDate(cycle?.start_date)}
+            />
             <DetailCard label="End Date" value={formatDate(cycle?.end_date)} />
           </div>
 
@@ -827,7 +862,7 @@ const CycleDetailsModal = ({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Owner Name" value={cycle?.user?.username} />
             <DetailCard label="Phone" value={cycle?.user?.phone_no} />
-            <DetailCard label="Owner ID" value={cycle?.user?.owner_id} />
+            <DetailCard label="Owner Code" value={cycle?.user?.owner_id} />
             <DetailCard label="Address" value={cycle?.user?.address} />
           </div>
 
@@ -835,23 +870,16 @@ const CycleDetailsModal = ({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <DetailCard label="Farm Name" value={getFarmName(cycle)} />
             <DetailCard label="Farm Code" value={getFarmCode(cycle)} />
-            <DetailCard
-              label="Farm Area"
-              value={
-                cycle?.farm?.farm_area_acres
-                  ? `${cycle.farm.farm_area_acres} acres`
-                  : "-"
-              }
-            />
-            <DetailCard label="Water Source" value={cycle?.farm?.water_source} />
-            <DetailCard label="Farm Address" value={cycle?.farm?.address} />
+            <DetailCard label="Farm Area" value={getFarmArea(cycle)} />
+            <DetailCard label="Water Source" value={getWaterSource(cycle)} />
+            <DetailCard label="Farm Address" value={getFarmAddress(cycle)} />
             <DetailCard
               label="Farm Gate Latitude"
-              value={cycle?.farm?.farm_gate_latitude}
+              value={getFarmGateLatitude(cycle)}
             />
             <DetailCard
               label="Farm Gate Longitude"
-              value={cycle?.farm?.farm_gate_longitude}
+              value={getFarmGateLongitude(cycle)}
             />
           </div>
 
@@ -880,9 +908,9 @@ const CycleDetailsModal = ({
           <SectionTitle title="Images" />
           {cycle?.images?.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {cycle.images.map((image) => (
+              {cycle.images.map((image, index) => (
                 <div
-                  key={image.id}
+                  key={image.image_url || image.storage_path || index}
                   className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
                 >
                   <button
@@ -910,10 +938,6 @@ const CycleDetailsModal = ({
                   <div className="p-3">
                     <p className="text-xs font-bold text-slate-700">
                       {image.description || "No description"}
-                    </p>
-
-                    <p className="mt-1 break-all text-[10px] font-semibold text-slate-400">
-                      {image.storage_path || image.image_url}
                     </p>
                   </div>
                 </div>
@@ -1000,10 +1024,6 @@ const FullImageView = ({ image, onClose }) => {
           <div className="min-w-0">
             <p className="truncate text-xs font-black text-slate-900">
               {image?.description || "Culture cycle image"}
-            </p>
-
-            <p className="mt-0.5 break-all text-[10px] font-semibold text-slate-400">
-              {image?.storage_path || image?.image_url}
             </p>
           </div>
 
