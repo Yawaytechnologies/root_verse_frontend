@@ -20,8 +20,7 @@ import {
 const ACCENT = "#25B7FF";
 const PAGE_SIZE = 10;
 
-/* ── Icons ── */
-const Ico = ({ d, ...p }) => (
+const Ico = ({ d, ...props }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -29,37 +28,46 @@ const Ico = ({ d, ...p }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     stroke="currentColor"
-    {...p}
+    {...props}
   >
     <path d={d} />
   </svg>
 );
 
-const IcoRefresh = (p) => (
+const IcoRefresh = (props) => (
   <Ico
     d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M3 16l2.26 2.26A9.75 9.75 0 0 0 12 21a9 9 0 0 0 9-9"
-    {...p}
+    {...props}
   />
 );
 
-const IcoSearch = (p) => (
-  <Ico d="M21 21l-4.3-4.3M11 18A7 7 0 1 0 4 11a7 7 0 0 0 7 7Z" {...p} />
+const IcoSearch = (props) => (
+  <Ico
+    d="M21 21l-4.3-4.3M11 18A7 7 0 1 0 4 11a7 7 0 0 0 7 7Z"
+    {...props}
+  />
 );
 
-const IcoCheck = (p) => <Ico d="M20 6 9 17l-5-5" {...p} />;
-const IcoX = (p) => <Ico d="M18 6 6 18M6 6l12 12" {...p} />;
-const IcoChevronL = (p) => <Ico d="m15 18-6-6 6-6" {...p} />;
-const IcoChevronR = (p) => <Ico d="m9 18 6-6-6-6" {...p} />;
-const IcoChevronD = (p) => <Ico d="m6 9 6 6 6-6" {...p} />;
+const IcoCheck = (props) => <Ico d="M20 6 9 17l-5-5" {...props} />;
+const IcoX = (props) => <Ico d="M18 6 6 18M6 6l12 12" {...props} />;
+const IcoChevronL = (props) => <Ico d="m15 18-6-6 6-6" {...props} />;
+const IcoChevronR = (props) => <Ico d="m9 18 6-6-6-6" {...props} />;
+const IcoChevronD = (props) => <Ico d="m6 9 6 6 6-6" {...props} />;
 
-const IcoEye = (p) => (
-  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor" {...p}>
+const IcoEye = (props) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    strokeWidth="2"
+    stroke="currentColor"
+    {...props}
+  >
     <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
 
-const IcoPond = (p) => (
+const IcoPond = (props) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -67,7 +75,7 @@ const IcoPond = (p) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     stroke="currentColor"
-    {...p}
+    {...props}
   >
     <ellipse cx="12" cy="12" rx="10" ry="5" />
     <path d="M2 12c0 4 4.5 7 10 7s10-3 10-7" />
@@ -75,7 +83,7 @@ const IcoPond = (p) => (
   </svg>
 );
 
-const IcoMapPin = (p) => (
+const IcoMapPin = (props) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -83,34 +91,115 @@ const IcoMapPin = (p) => (
     stroke="currentColor"
     strokeLinecap="round"
     strokeLinejoin="round"
-    {...p}
+    {...props}
   >
     <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z" />
     <circle cx="12" cy="9" r="2.5" />
   </svg>
 );
 
-/* ── Generic fixed-position dropdown ── */
+const show = (value) => {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value);
+};
+
+const formatDate = (value) => {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getPondName = (pond) => {
+  return pond?.pond_name || pond?.name || "—";
+};
+
+const getPondCode = (pond) => {
+  return pond?.pond_id || pond?.pond_code || "—";
+};
+
+const getPondQr = (pond) => {
+  return (
+    pond?.qrs_id ||
+    pond?.qrs_code ||
+    pond?.qrsCode ||
+    pond?.qrsID ||
+    pond?.pond_qrs ||
+    pond?.pond_qrs_id ||
+    pond?.pondQr ||
+    pond?.pond_qr ||
+    pond?.pond_qr_id ||
+    pond?.qr_code ||
+    pond?.qr_code_id ||
+    pond?.qrId ||
+    pond?.qr_id ||
+    "—"
+  );
+};
+
+const getPondArea = (pond) => {
+  return (
+    pond?.water_spread_area_acres ||
+    pond?.water_spread_area ||
+    pond?.area ||
+    ""
+  );
+};
+
+const getVerificationText = (pond) => {
+  const value = pond?.verification_status || pond?.status;
+
+  if (!value) return "—";
+
+  const text = String(value).trim().toLowerCase();
+
+  if (text === "approved" || text === "verified") return "Verified";
+  if (text === "pending" || text === "unverified") return "Unverified";
+  if (text === "rejected") return "Rejected";
+
+  return String(value);
+};
+
+const isPondActive = (pond) => {
+  if (pond?.pond_status) {
+    return String(pond.pond_status).toLowerCase() === "active";
+  }
+
+  return pond?.is_active !== false;
+};
+
 function StatusDropdown({ value, options, onChange, isUpdating, disabled }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ bottom: 0, left: 0 });
-  const btnRef = useRef();
-  const menuRef = useRef();
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
 
-    const h = (e) => {
+    const handler = (event) => {
       if (
-        !btnRef.current?.contains(e.target) &&
-        !menuRef.current?.contains(e.target)
+        !btnRef.current?.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
       ) {
         setOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    document.addEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -127,37 +216,36 @@ function StatusDropdown({ value, options, onChange, isUpdating, disabled }) {
     };
   }, [open]);
 
-  function toggle() {
+  const toggle = () => {
     if (isUpdating || disabled) return;
 
-    const r = btnRef.current.getBoundingClientRect();
+    const rect = btnRef.current.getBoundingClientRect();
 
     setPos({
-      bottom: window.innerHeight - r.top + 6,
-      left: r.left,
+      bottom: window.innerHeight - rect.top + 6,
+      left: rect.left,
     });
 
-    setOpen((v) => !v);
-  }
+    setOpen((previous) => !previous);
+  };
 
-  const current = options.find((o) => o.value === value) ?? options[0];
+  const current = options.find((option) => option.value === value) ?? options[0];
 
   return (
     <>
       <button
         ref={btnRef}
+        type="button"
         onClick={toggle}
         disabled={isUpdating || disabled}
-        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 transition select-none
-          ${current.cls}
-          ${
-            !isUpdating && !disabled
-              ? "cursor-pointer active:scale-95"
-              : "cursor-default opacity-80"
-          }`}
+        className={`inline-flex select-none items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 transition ${current.cls} ${
+          !isUpdating && !disabled
+            ? "cursor-pointer active:scale-95"
+            : "cursor-default opacity-80"
+        }`}
       >
         {isUpdating ? (
-          <span className="h-2.5 w-2.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
         ) : (
           <span className={`h-1.5 w-1.5 rounded-full ${current.dot}`} />
         )}
@@ -184,29 +272,31 @@ function StatusDropdown({ value, options, onChange, isUpdating, disabled }) {
             CHANGE STATUS
           </div>
 
-          {options.map((opt) => (
+          {options.map((option) => (
             <button
-              key={opt.value}
+              key={option.value}
+              type="button"
               onClick={() => {
                 setOpen(false);
-                if (opt.value !== value) onChange(opt.value);
+                if (option.value !== value) {
+                  onChange(option.value);
+                }
               }}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold transition
-                ${
-                  opt.value === value
-                    ? "bg-slate-50 opacity-60 cursor-default"
-                    : "hover:bg-slate-50"
-                }`}
+              className={`flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold transition ${
+                option.value === value
+                  ? "cursor-default bg-slate-50 opacity-60"
+                  : "hover:bg-slate-50"
+              }`}
             >
               <span
-                className={`flex h-6 w-6 items-center justify-center rounded-lg ${opt.iconBg}`}
+                className={`flex h-6 w-6 items-center justify-center rounded-lg ${option.iconBg}`}
               >
-                {opt.icon}
+                {option.icon}
               </span>
 
-              <span className={opt.textCls}>{opt.label}</span>
+              <span className={option.textCls}>{option.label}</span>
 
-              {opt.value === value && (
+              {option.value === value && (
                 <IcoCheck className="ml-auto h-3.5 w-3.5 text-slate-400" />
               )}
             </button>
@@ -217,7 +307,6 @@ function StatusDropdown({ value, options, onChange, isUpdating, disabled }) {
   );
 }
 
-/* ── Verify dropdown options ── */
 const VERIFY_OPTIONS = [
   {
     value: "verified",
@@ -239,7 +328,6 @@ const VERIFY_OPTIONS = [
   },
 ];
 
-/* ── Active dropdown options ── */
 const ACTIVE_OPTIONS = [
   {
     value: "active",
@@ -261,25 +349,26 @@ const ACTIVE_OPTIONS = [
   },
 ];
 
-/* ── Pagination ── */
 function Pagination({ current, total, onChange }) {
   if (total <= 1) return null;
 
   const pages = [];
 
   if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
+    for (let index = 1; index <= total; index += 1) {
+      pages.push(index);
+    }
   } else {
     pages.push(1);
 
     if (current > 3) pages.push("…");
 
     for (
-      let i = Math.max(2, current - 1);
-      i <= Math.min(total - 1, current + 1);
-      i++
+      let index = Math.max(2, current - 1);
+      index <= Math.min(total - 1, current + 1);
+      index += 1
     ) {
-      pages.push(i);
+      pages.push(index);
     }
 
     if (current < total - 2) pages.push("…");
@@ -293,41 +382,44 @@ function Pagination({ current, total, onChange }) {
   return (
     <div className="flex items-center gap-1">
       <button
+        type="button"
         onClick={() => onChange(current - 1)}
         disabled={current === 1}
-        className={`${btn} text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed`}
+        className={`${btn} text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30`}
       >
         <IcoChevronL className="h-4 w-4" />
       </button>
 
-      {pages.map((p, i) =>
-        p === "…" ? (
+      {pages.map((page, index) =>
+        page === "…" ? (
           <span
-            key={`e${i}`}
-            className="flex h-8 w-8 items-center justify-center text-slate-400 text-sm"
+            key={`ellipsis-${index}`}
+            className="flex h-8 w-8 items-center justify-center text-sm text-slate-400"
           >
             …
           </span>
         ) : (
           <button
-            key={p}
-            onClick={() => onChange(p)}
+            type="button"
+            key={page}
+            onClick={() => onChange(page)}
             className={`${btn} ${
-              current === p
+              current === page
                 ? "text-white shadow-sm"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
-            style={current === p ? { background: ACCENT } : undefined}
+            style={current === page ? { background: ACCENT } : undefined}
           >
-            {p}
+            {page}
           </button>
         )
       )}
 
       <button
+        type="button"
         onClick={() => onChange(current + 1)}
         disabled={current === total}
-        className={`${btn} text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed`}
+        className={`${btn} text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30`}
       >
         <IcoChevronR className="h-4 w-4" />
       </button>
@@ -335,17 +427,33 @@ function Pagination({ current, total, onChange }) {
   );
 }
 
-/* ── Detail Modal ── */
-function DetailRow({ label, value }) {
+function DetailRow({ label, value, mono = false }) {
   return (
-    <div>
-      <p className="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">
+    <div className="min-w-0 rounded-xl bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
         {label}
       </p>
-      <p className="mt-0.5 text-sm font-medium text-slate-800 break-words">
-        {value ?? "—"}
+
+      <p
+        className={`mt-1 break-words text-sm font-semibold text-slate-800 ${
+          mono ? "font-mono text-[12px]" : ""
+        }`}
+      >
+        {show(value)}
       </p>
     </div>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <section>
+      <p className="mb-3 border-b border-slate-100 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+        {title}
+      </p>
+
+      {children}
+    </section>
   );
 }
 
@@ -353,15 +461,18 @@ function PondDetailModal({ pond, onClose }) {
   useEffect(() => {
     if (!pond) return;
 
-    const prev = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = previousOverflow;
     };
   }, [pond]);
 
   if (!pond) return null;
+
+  const area = getPondArea(pond);
+  const pondQr = getPondQr(pond);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
@@ -371,12 +482,12 @@ function PondDetailModal({ pond, onClose }) {
       />
 
       <div
-        className="relative z-10 flex flex-col h-full
-        md:h-auto md:m-auto md:max-h-[90vh] md:w-full md:max-w-2xl
-        bg-white shadow-2xl overflow-hidden
-        md:rounded-2xl md:ring-1 md:ring-black/10"
+        className="
+          relative z-10 flex h-full flex-col overflow-hidden bg-white shadow-2xl
+          md:m-auto md:h-auto md:max-h-[90vh] md:w-full md:max-w-3xl md:rounded-2xl md:ring-1 md:ring-black/10
+        "
       >
-        <div className="flex items-start gap-3 border-b border-slate-100 px-5 py-4 shrink-0">
+        <div className="flex shrink-0 items-start gap-3 border-b border-slate-100 px-5 py-4">
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
             style={{ background: ACCENT }}
@@ -385,90 +496,69 @@ function PondDetailModal({ pond, onClose }) {
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-slate-800">{pond.name}</p>
-            <p className="mt-0.5 font-mono text-xs text-slate-500">
-              {pond.pond_code || `#${pond.id}`}
+            <p className="truncate font-semibold text-slate-800">
+              {getPondName(pond)}
+            </p>
+
+            <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
+              {pondQr !== "—" ? pondQr : getPondCode(pond)}
             </p>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="shrink-0 rounded-xl bg-slate-100 p-2.5 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-200 transition active:scale-95"
+            className="shrink-0 rounded-xl bg-slate-100 p-2.5 text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-200 active:scale-95"
           >
             <IcoX className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 space-y-6">
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Pond Identity
-            </p>
+        <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 py-5">
+          <Section title="Pond Details">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <DetailRow label="Pond Name" value={getPondName(pond)} />
+              <DetailRow label="Pond Code" value={getPondCode(pond)} mono />
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <DetailRow label="Pond Name" value={pond.name} />
-              <DetailRow label="Pond Code" value={pond.pond_code} />
-              <DetailRow label="Pond ID" value={pond.id} />
-              <DetailRow label="User ID" value={pond.user_id} />
+              {pondQr !== "—" && (
+                <DetailRow label="Pond QR" value={pondQr} mono />
+              )}
+
               <DetailRow label="Pond Type" value={pond.pond_type} />
-            </div>
-          </section>
-
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Farm Details
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <DetailRow label="Farm ID" value={pond.farm_id} />
-              <DetailRow label="Farm Name" value={pond.farm_name} />
-              <DetailRow label="Farm QR ID" value={pond.farm_qr_id} />
-              <DetailRow label="Species ID" value={pond.species_id} />
-            </div>
-          </section>
-
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Measurements
-            </p>
-
-            <div className="grid grid-cols-2 gap-4">
               <DetailRow
                 label="Water Spread Area"
-                value={pond.area ? `${pond.area} acres` : null}
+                value={area ? `${area} acres` : null}
               />
-              <DetailRow
-                label="Volume"
-                value={pond.volume ? `${pond.volume}` : null}
-              />
+              <DetailRow label="Volume" value={pond.volume} />
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Status
-            </p>
+          <Section title="Farm / Owner Details">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <DetailRow label="Farm Code" value={pond.farm_code} mono />
+              <DetailRow label="Farm Name" value={pond.farm_name} />
+              <DetailRow label="Owner ID" value={pond.owner_id} mono />
+              <DetailRow label="Username" value={pond.username} />
+            </div>
+          </Section>
 
-            <div className="grid grid-cols-2 gap-4">
-              <DetailRow label="Verification" value={pond.status} />
+          <Section title="Status">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <DetailRow label="Verification" value={getVerificationText(pond)} />
               <DetailRow
                 label="Active Status"
-                value={pond.is_active ? "Active" : "Inactive"}
+                value={isPondActive(pond) ? "Active" : "Inactive"}
               />
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Location
-            </p>
-
+          <Section title="Location">
             {pond.pond_gps ? (
               <a
                 href={pond.pond_gps}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100 transition hover:bg-blue-100"
               >
                 <IcoMapPin className="h-4 w-4 shrink-0" />
                 View on Google Maps
@@ -476,42 +566,33 @@ function PondDetailModal({ pond, onClose }) {
             ) : (
               <p className="text-sm text-slate-400">No GPS data available</p>
             )}
-          </section>
+          </Section>
 
           {pond.image_url && (
-            <section>
-              <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-                Pond Image
-              </p>
-
-              <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200 bg-slate-50 max-h-60 flex items-center justify-center">
-                <img src={pond.image_url} alt="Pond" className="w-full object-cover" />
+            <Section title="Pond Image">
+              <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-200">
+                <img
+                  src={pond.image_url}
+                  alt="Pond"
+                  className="w-full object-cover"
+                />
               </div>
-            </section>
+            </Section>
           )}
 
-          <section>
-            <p className="mb-3 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase border-b border-slate-100 pb-2">
-              Timestamps
-            </p>
-
-            <div className="grid grid-cols-2 gap-4">
-              <DetailRow
-                label="Created"
-                value={pond.created_at ? new Date(pond.created_at).toLocaleString() : null}
-              />
-              <DetailRow
-                label="Updated"
-                value={pond.updated_at ? new Date(pond.updated_at).toLocaleString() : null}
-              />
+          <Section title="Timestamps">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <DetailRow label="Created At" value={formatDate(pond.created_at)} />
+              <DetailRow label="Updated At" value={formatDate(pond.updated_at)} />
             </div>
-          </section>
+          </Section>
         </div>
 
-        <div className="shrink-0 border-t border-slate-100 px-5 py-4 bg-slate-50/60">
+        <div className="shrink-0 border-t border-slate-100 bg-slate-50/60 px-5 py-4">
           <button
+            type="button"
             onClick={onClose}
-            className="w-full rounded-xl bg-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition active:scale-[0.98]"
+            className="w-full rounded-xl bg-slate-200 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-300 active:scale-[0.98]"
           >
             Close
           </button>
@@ -521,7 +602,6 @@ function PondDetailModal({ pond, onClose }) {
   );
 }
 
-/* ── Table card wrapper ── */
 function TableCard({
   icon,
   title,
@@ -534,8 +614,8 @@ function TableCard({
   footer,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-slate-100">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"
@@ -555,11 +635,15 @@ function TableCard({
 
           {onRefresh && (
             <button
+              type="button"
               onClick={onRefresh}
               disabled={loading}
-              className="ml-1 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 transition disabled:opacity-40"
+              className="ml-1 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 disabled:opacity-40"
+              title="Refresh"
             >
-              <IcoRefresh className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <IcoRefresh
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
             </button>
           )}
         </div>
@@ -569,14 +653,17 @@ function TableCard({
 
           <input
             value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search name, code, farm ID…"
-            className="h-9 w-full sm:w-64 rounded-xl bg-slate-50 pl-9 pr-4 text-sm text-slate-800 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none transition"
-            onFocus={(e) => {
-              e.target.style.boxShadow = `0 0 0 2px ${ACCENT}55`;
+            onChange={(event) => onSearch(event.target.value)}
+            placeholder="Search pond, code, QR, farm..."
+            className="
+              h-9 w-full rounded-xl bg-slate-50 pl-9 pr-4 text-sm text-slate-800 ring-1 ring-slate-200
+              placeholder:text-slate-400 focus:bg-white focus:outline-none sm:w-64
+            "
+            onFocus={(event) => {
+              event.target.style.boxShadow = `0 0 0 2px ${ACCENT}55`;
             }}
-            onBlur={(e) => {
-              e.target.style.boxShadow = "";
+            onBlur={(event) => {
+              event.target.style.boxShadow = "";
             }}
           />
         </div>
@@ -590,7 +677,7 @@ function TableCard({
 
 function Empty({ message }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 gap-2">
+    <div className="flex flex-col items-center justify-center gap-2 py-14">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
         <IcoPond className="h-6 w-6 text-slate-400" />
       </div>
@@ -606,7 +693,7 @@ function TableFooter({ page, totalPages, filtered, pageSize, onPageChange }) {
   const to = Math.min(page * pageSize, filtered);
 
   return (
-    <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-slate-500">
         Showing <strong className="text-slate-700">{from}–{to}</strong> of{" "}
         <strong className="text-slate-700">{filtered}</strong> pond(s)
@@ -617,9 +704,160 @@ function TableFooter({ page, totalPages, filtered, pageSize, onPageChange }) {
   );
 }
 
-/* ══════════════════════════════════════════
-   MAIN PAGE
-══════════════════════════════════════════ */
+function PondMobileCard({
+  pond,
+  verified,
+  updatingMap,
+  updateErrMap,
+  onView,
+  onVerifyChange,
+  onActiveChange,
+}) {
+  const area = getPondArea(pond);
+  const secondLabel = verified ? "Pond QR: " : "Pond Code: ";
+  const secondValue = verified ? getPondQr(pond) : getPondCode(pond);
+
+  return (
+    <div className="space-y-3 px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-slate-800">
+            {getPondName(pond)}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onView(pond)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+          style={{ background: ACCENT }}
+        >
+          <IcoEye className="h-3.5 w-3.5" />
+          View
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-1.5 text-xs">
+        <div>
+          <span className="text-slate-400">{secondLabel}</span>
+          <span className="font-mono text-slate-700">{secondValue}</span>
+        </div>
+
+        <div>
+          <span className="text-slate-400">Area: </span>
+          <span className="text-slate-700">{area ? `${area} ac` : "—"}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-400">Verification:</span>
+
+          <StatusDropdown
+            value={verified ? "verified" : "unverified"}
+            options={VERIFY_OPTIONS}
+            onChange={(value) => onVerifyChange(pond, value)}
+            isUpdating={!!updatingMap[pond.id]}
+            disabled={verified}
+          />
+        </div>
+
+        {verified && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Active:</span>
+
+            <StatusDropdown
+              value={isPondActive(pond) ? "active" : "inactive"}
+              options={ACTIVE_OPTIONS}
+              onChange={(value) => onActiveChange(pond, value)}
+              isUpdating={!!updatingMap[pond.id]}
+            />
+          </div>
+        )}
+      </div>
+
+      {updateErrMap[pond.id] && (
+        <p className="text-xs text-rose-600">⚠ {updateErrMap[pond.id]}</p>
+      )}
+    </div>
+  );
+}
+
+function PondDesktopRow({
+  pond,
+  verified,
+  updatingMap,
+  updateErrMap,
+  onView,
+  onVerifyChange,
+  onActiveChange,
+}) {
+  const area = getPondArea(pond);
+  const secondValue = verified ? getPondQr(pond) : getPondCode(pond);
+
+  return (
+    <React.Fragment>
+      <tr className="transition hover:bg-slate-50/60">
+        <td className="border-b border-slate-100 px-4 py-3.5 align-middle font-semibold text-slate-800">
+          {getPondName(pond)}
+        </td>
+
+        <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
+          <span className="rounded-lg bg-blue-50 px-2 py-0.5 font-mono text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
+            {secondValue}
+          </span>
+        </td>
+
+        <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3.5 align-middle text-slate-700">
+          {area ? `${area} ac` : "—"}
+        </td>
+
+        <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusDropdown
+              value={verified ? "verified" : "unverified"}
+              options={VERIFY_OPTIONS}
+              onChange={(value) => onVerifyChange(pond, value)}
+              isUpdating={!!updatingMap[pond.id]}
+              disabled={verified}
+            />
+
+            {verified && (
+              <StatusDropdown
+                value={isPondActive(pond) ? "active" : "inactive"}
+                options={ACTIVE_OPTIONS}
+                onChange={(value) => onActiveChange(pond, value)}
+                isUpdating={!!updatingMap[pond.id]}
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={() => onView(pond)}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition active:scale-95"
+              style={{ background: ACCENT }}
+            >
+              <IcoEye className="h-3.5 w-3.5" />
+              View
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {updateErrMap[pond.id] && (
+        <tr>
+          <td
+            colSpan={4}
+            className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-600"
+          >
+            ⚠ {updateErrMap[pond.id]}
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  );
+}
+
 export default function PondApproval() {
   const dispatch = useDispatch();
 
@@ -627,8 +865,10 @@ export default function PondApproval() {
   const approvedPonds = useSelector(selectApprovedPonds);
   const loading = useSelector(selectPondsLoading);
   const error = useSelector(selectPondsError);
-  const updatingMap = useSelector((s) => s.pondApproval.updating);
-  const updateErrMap = useSelector((s) => s.pondApproval.updateError);
+  const updatingMap = useSelector((state) => state.pondApproval.updating || {});
+  const updateErrMap = useSelector(
+    (state) => state.pondApproval.updateError || {}
+  );
 
   const [viewPond, setViewPond] = useState(null);
   const [uSearch, setUSearch] = useState("");
@@ -648,9 +888,10 @@ export default function PondApproval() {
     setVPage(1);
   }, [vSearch]);
 
-  function handleVerifyChange(pond, newStatus) {
+  const handleVerifyChange = (pond, newStatus) => {
     if (newStatus === "verified") {
       dispatch(approvePond({ id: pond.id, pond }));
+      return;
     }
 
     if (newStatus === "unverified") {
@@ -662,9 +903,9 @@ export default function PondApproval() {
         })
       );
     }
-  }
+  };
 
-  function handleActiveChange(pond, newActive) {
+  const handleActiveChange = (pond, newActive) => {
     dispatch(
       updatePond({
         id: pond.id,
@@ -674,21 +915,33 @@ export default function PondApproval() {
         },
       })
     );
-  }
+  };
 
-  function filterPonds(list, q) {
-    const qq = q.trim().toLowerCase();
+  const filterPonds = (list, query) => {
+    const q = query.trim().toLowerCase();
 
-    if (!qq) return list;
+    if (!q) return list || [];
 
-    return list.filter((p) =>
-      [p.name, p.pond_code, String(p.farm_id ?? ""), String(p.species_id ?? "")]
+    return (list || []).filter((pond) =>
+      [
+        getPondName(pond),
+        getPondCode(pond),
+        getPondQr(pond),
+        pond?.farm_code,
+        pond?.farm_name,
+        pond?.owner_id,
+        pond?.username,
+        pond?.pond_type,
+        pond?.pond_status,
+        pond?.verification_status,
+        pond?.status,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(qq)
+        .includes(q)
     );
-  }
+  };
 
   const filteredU = useMemo(
     () => filterPonds(pendingPonds, uSearch),
@@ -709,37 +962,20 @@ export default function PondApproval() {
   const pageU = filteredU.slice((uSafe - 1) * PAGE_SIZE, uSafe * PAGE_SIZE);
   const pageV = filteredV.slice((vSafe - 1) * PAGE_SIZE, vSafe * PAGE_SIZE);
 
-  const COLS_U = [
-    "POND CODE",
-    "POND NAME",
-    "FARM ID",
-    "SPECIES ID",
-    "AREA",
-    "SUBMITTED",
-    "VERIFICATION",
-    "ACTIONS",
-  ];
-
-  const COLS_V = [
-    "POND CODE",
-    "POND NAME",
-    "FARM ID",
-    "SPECIES ID",
-    "AREA",
-    "VERIFICATION",
-    "ACTIVE STATUS",
-    "ACTIONS",
-  ];
+  const COLS_U = ["POND NAME", "POND CODE", "AREA", "ACTIONS"];
+  const COLS_V = ["POND NAME", "POND QR", "AREA", "ACTIONS"];
 
   return (
     <div className="min-h-full bg-white">
-      <div className="border-b border-slate-100 px-6 pt-6 pb-5">
-        <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase flex items-center gap-2">
+      <div className="border-b border-slate-100 px-6 pb-5 pt-6">
+        <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
           <IcoPond className="h-3.5 w-3.5" style={{ color: ACCENT }} />
           Aquaculture
         </p>
 
-        <h1 className="mt-1 text-2xl font-bold text-slate-800">Pond Registry</h1>
+        <h1 className="mt-1 text-2xl font-bold text-slate-800">
+          Pond Registry
+        </h1>
 
         <p className="mt-0.5 text-sm text-slate-500">
           Verify ponds and manage their active status
@@ -751,8 +987,9 @@ export default function PondApproval() {
           <span>⚠ {error}</span>
 
           <button
+            type="button"
             onClick={() => dispatch(clearError())}
-            className="shrink-0 rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold hover:bg-rose-200 transition"
+            className="shrink-0 rounded-lg bg-rose-100 px-3 py-1 text-xs font-semibold transition hover:bg-rose-200"
           >
             Dismiss
           </button>
@@ -760,11 +997,10 @@ export default function PondApproval() {
       )}
 
       <div className="mx-6 my-5 space-y-6">
-        {/* ══ UNVERIFIED TABLE ══ */}
         <TableCard
           icon={<IcoPond className="h-5 w-5" />}
           title="Unverified Ponds"
-          count={pendingPonds.length}
+          count={(pendingPonds || []).length}
           loading={loading}
           search={uSearch}
           onSearch={setUSearch}
@@ -781,93 +1017,50 @@ export default function PondApproval() {
             )
           }
         >
-          {loading && pendingPonds.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 gap-3 text-slate-400">
+          {loading && (pendingPonds || []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-14 text-slate-400">
               <span
-                className="h-7 w-7 rounded-full border-[3px] border-slate-200 animate-spin"
+                className="h-7 w-7 animate-spin rounded-full border-[3px] border-slate-200"
                 style={{ borderTopColor: ACCENT }}
               />
+
               <span className="text-sm">Loading ponds…</span>
             </div>
           ) : filteredU.length === 0 ? (
             <Empty
-              message={uSearch ? "Try a different search term." : "All ponds are verified!"}
+              message={
+                uSearch
+                  ? "Try a different search term."
+                  : "All ponds are verified!"
+              }
             />
           ) : (
             <>
-              {/* Mobile */}
-              <div className="sm:hidden divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 sm:hidden">
                 {pageU.map((pond) => (
-                  <div key={pond.id} className="px-4 py-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-800 truncate">
-                          {pond.name || "—"}
-                        </p>
-                        <p className="mt-0.5 font-mono text-[11px] text-slate-500">
-                          {pond.pond_code || `#${pond.id}`}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => setViewPond(pond)}
-                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
-                        style={{ background: ACCENT }}
-                      >
-                        <IcoEye className="h-3.5 w-3.5" /> View
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                      <div>
-                        <span className="text-slate-400">Farm: </span>
-                        <span className="text-slate-700">{pond.farm_id ?? "—"}</span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400">Species: </span>
-                        <span className="text-slate-700">{pond.species_id ?? "—"}</span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400">Area: </span>
-                        <span className="text-slate-700">
-                          {pond.area ? `${pond.area} ac` : "—"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400">Verification:</span>
-
-                      <StatusDropdown
-                        value="unverified"
-                        options={VERIFY_OPTIONS}
-                        onChange={(v) => handleVerifyChange(pond, v)}
-                        isUpdating={!!updatingMap[pond.id]}
-                      />
-                    </div>
-
-                    {updateErrMap[pond.id] && (
-                      <p className="text-xs text-rose-600">
-                        ⚠ {updateErrMap[pond.id]}
-                      </p>
-                    )}
-                  </div>
+                  <PondMobileCard
+                    key={pond.id}
+                    pond={pond}
+                    verified={false}
+                    updatingMap={updatingMap}
+                    updateErrMap={updateErrMap}
+                    onView={setViewPond}
+                    onVerifyChange={handleVerifyChange}
+                    onActiveChange={handleActiveChange}
+                  />
                 ))}
               </div>
 
-              {/* Desktop */}
-              <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-sm border-separate border-spacing-0">
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full border-separate border-spacing-0 text-sm">
                   <thead>
                     <tr>
-                      {COLS_U.map((h) => (
+                      {COLS_U.map((head) => (
                         <th
-                          key={h}
+                          key={head}
                           className="border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-left text-[10px] font-bold tracking-[0.18em] text-slate-400"
                         >
-                          {h}
+                          {head}
                         </th>
                       ))}
                     </tr>
@@ -875,71 +1068,16 @@ export default function PondApproval() {
 
                   <tbody>
                     {pageU.map((pond) => (
-                      <React.Fragment key={pond.id}>
-                        <tr className="hover:bg-slate-50/60 transition">
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg ring-1 ring-slate-200/80 whitespace-nowrap">
-                              {pond.pond_code || `#${pond.id}`}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle font-semibold text-slate-800">
-                            {pond.name || "—"}
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
-                              {pond.farm_id ?? "—"}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="rounded-lg bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-100">
-                              {pond.species_id ?? "—"}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-slate-700">
-                            {pond.area ? `${pond.area} ac` : "—"}
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-xs text-slate-500">
-                            {pond.created_at
-                              ? new Date(pond.created_at).toLocaleDateString()
-                              : "—"}
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <StatusDropdown
-                              value="unverified"
-                              options={VERIFY_OPTIONS}
-                              onChange={(v) => handleVerifyChange(pond, v)}
-                              isUpdating={!!updatingMap[pond.id]}
-                            />
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <button
-                              onClick={() => setViewPond(pond)}
-                              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition active:scale-95"
-                              style={{ background: ACCENT }}
-                            >
-                              <IcoEye className="h-3.5 w-3.5" /> View
-                            </button>
-                          </td>
-                        </tr>
-
-                        {updateErrMap[pond.id] && (
-                          <tr>
-                            <td
-                              colSpan={8}
-                              className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-600"
-                            >
-                              ⚠ {updateErrMap[pond.id]}
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
+                      <PondDesktopRow
+                        key={pond.id}
+                        pond={pond}
+                        verified={false}
+                        updatingMap={updatingMap}
+                        updateErrMap={updateErrMap}
+                        onView={setViewPond}
+                        onVerifyChange={handleVerifyChange}
+                        onActiveChange={handleActiveChange}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -948,11 +1086,10 @@ export default function PondApproval() {
           )}
         </TableCard>
 
-        {/* ══ VERIFIED TABLE ══ */}
         <TableCard
           icon={<IcoCheck className="h-5 w-5" />}
           title="Verified Ponds"
-          count={approvedPonds.length}
+          count={(approvedPonds || []).length}
           loading={false}
           search={vSearch}
           onSearch={setVSearch}
@@ -970,97 +1107,39 @@ export default function PondApproval() {
         >
           {filteredV.length === 0 ? (
             <Empty
-              message={vSearch ? "Try a different search term." : "No verified ponds yet."}
+              message={
+                vSearch
+                  ? "Try a different search term."
+                  : "No verified ponds yet."
+              }
             />
           ) : (
             <>
-              {/* Mobile */}
-              <div className="sm:hidden divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 sm:hidden">
                 {pageV.map((pond) => (
-                  <div key={pond.id} className="px-4 py-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-800 truncate">
-                          {pond.name || "—"}
-                        </p>
-                        <p className="mt-0.5 font-mono text-[11px] text-slate-500">
-                          {pond.pond_code || `#${pond.id}`}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => setViewPond(pond)}
-                        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
-                        style={{ background: ACCENT }}
-                      >
-                        <IcoEye className="h-3.5 w-3.5" /> View
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                      <div>
-                        <span className="text-slate-400">Farm: </span>
-                        <span className="text-slate-700">{pond.farm_id ?? "—"}</span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400">Species: </span>
-                        <span className="text-slate-700">{pond.species_id ?? "—"}</span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400">Area: </span>
-                        <span className="text-slate-700">
-                          {pond.area ? `${pond.area} ac` : "—"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">Verification:</span>
-
-                        <StatusDropdown
-                          value="verified"
-                          options={VERIFY_OPTIONS}
-                          onChange={(v) => handleVerifyChange(pond, v)}
-                          isUpdating={!!updatingMap[pond.id]}
-                          disabled={true}
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">Active:</span>
-
-                        <StatusDropdown
-                          value={pond.is_active !== false ? "active" : "inactive"}
-                          options={ACTIVE_OPTIONS}
-                          onChange={(v) => handleActiveChange(pond, v)}
-                          isUpdating={!!updatingMap[pond.id]}
-                        />
-                      </div>
-                    </div>
-
-                    {updateErrMap[pond.id] && (
-                      <p className="text-xs text-rose-600">
-                        ⚠ {updateErrMap[pond.id]}
-                      </p>
-                    )}
-                  </div>
+                  <PondMobileCard
+                    key={pond.id}
+                    pond={pond}
+                    verified={true}
+                    updatingMap={updatingMap}
+                    updateErrMap={updateErrMap}
+                    onView={setViewPond}
+                    onVerifyChange={handleVerifyChange}
+                    onActiveChange={handleActiveChange}
+                  />
                 ))}
               </div>
 
-              {/* Desktop */}
-              <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full text-sm border-separate border-spacing-0">
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full border-separate border-spacing-0 text-sm">
                   <thead>
                     <tr>
-                      {COLS_V.map((h) => (
+                      {COLS_V.map((head) => (
                         <th
-                          key={h}
+                          key={head}
                           className="border-b border-slate-100 bg-slate-50/60 px-4 py-3 text-left text-[10px] font-bold tracking-[0.18em] text-slate-400"
                         >
-                          {h}
+                          {head}
                         </th>
                       ))}
                     </tr>
@@ -1068,75 +1147,16 @@ export default function PondApproval() {
 
                   <tbody>
                     {pageV.map((pond) => (
-                      <React.Fragment key={pond.id}>
-                        <tr className="hover:bg-slate-50/60 transition">
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg ring-1 ring-slate-200/80 whitespace-nowrap">
-                              {pond.pond_code || `#${pond.id}`}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle font-semibold text-slate-800">
-                            {pond.name || "—"}
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
-                              {pond.farm_id ?? "—"}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <span className="rounded-lg bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-violet-100">
-                              {pond.species_id ?? "—"}
-                            </span>
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle whitespace-nowrap text-slate-700">
-                            {pond.area ? `${pond.area} ac` : "—"}
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <StatusDropdown
-                              value="verified"
-                              options={VERIFY_OPTIONS}
-                              onChange={(v) => handleVerifyChange(pond, v)}
-                              isUpdating={!!updatingMap[pond.id]}
-                              disabled={true}
-                            />
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <StatusDropdown
-                              value={pond.is_active !== false ? "active" : "inactive"}
-                              options={ACTIVE_OPTIONS}
-                              onChange={(v) => handleActiveChange(pond, v)}
-                              isUpdating={!!updatingMap[pond.id]}
-                            />
-                          </td>
-
-                          <td className="border-b border-slate-100 px-4 py-3.5 align-middle">
-                            <button
-                              onClick={() => setViewPond(pond)}
-                              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition active:scale-95"
-                              style={{ background: ACCENT }}
-                            >
-                              <IcoEye className="h-3.5 w-3.5" /> View
-                            </button>
-                          </td>
-                        </tr>
-
-                        {updateErrMap[pond.id] && (
-                          <tr>
-                            <td
-                              colSpan={8}
-                              className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-600"
-                            >
-                              ⚠ {updateErrMap[pond.id]}
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
+                      <PondDesktopRow
+                        key={pond.id}
+                        pond={pond}
+                        verified={true}
+                        updatingMap={updatingMap}
+                        updateErrMap={updateErrMap}
+                        onView={setViewPond}
+                        onVerifyChange={handleVerifyChange}
+                        onActiveChange={handleActiveChange}
+                      />
                     ))}
                   </tbody>
                 </table>
