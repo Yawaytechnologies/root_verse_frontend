@@ -1,6 +1,6 @@
 // src/modules/admin/ui/AdminSidebar.jsx
 import { NavLink, Link } from "react-router-dom";
-import { FiHome, FiX, FiGrid, FiUser, FiCheckCircle } from "react-icons/fi";
+import { FiHome, FiX, FiGrid, FiUser, FiCheckCircle,FiActivity } from "react-icons/fi";
 import brandLogo from "../../../assets/AquaLogo.jpg";
 
 import { LuLogs,LuClipboardCheck } from "react-icons/lu";
@@ -20,6 +20,11 @@ const nav = [
   { to: "/admin/aqua-culture/daily-log",          label: "Daily Log",      icon: LuLogs },
   { to: "/admin/aqua-culture/culture-cycle-approval",          label:"Culture Cycle Approval",      icon: LuClipboardCheck },
   { to: "/admin/aqua-culture/aqua-harvest",       label: "Harvest",        icon: FiCheckCircle },
+  {
+    to: "/admin/aqua-culture/sampling-records",
+    label: "Sampling Records",
+    icon: FiActivity,
+  },
   { to: "/admin/aqua-culture/aqua-crate",         label: "Crate",          icon: MdQrCodeScanner },
   { to: "/admin/aqua-culture/aqua-qr",            label: "Generate QR",    icon: TbQrcode },  // ← NEW
 ];
