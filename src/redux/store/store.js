@@ -22,6 +22,7 @@ import authReducer from "../reducer/adminLoginSlice";
 import crateListingReducer from "../reducer/crateListingSlice";
 import aquacultureQrReducer from "../reducer/aquacultureQRSlice"
 import cultureCycleApprovalReducer from "../reducer/culturalCycleSlice";
+import samplingReducer from "../reducer/samplingSlice";
 
 export const store = configureStore({
   reducer: {
@@ -47,5 +48,6 @@ export const store = configureStore({
     crateListing: crateListingReducer,
     aquacultureQr: aquacultureQrReducer,
     cultureCycleApproval: cultureCycleApprovalReducer,
+    sampling: samplingReducer,
   },
 });
