@@ -1,32 +1,86 @@
-// src/modules/admin/ui/AdminSidebar.jsx
+// src/components/admin/aquaculture/AquaSidebar.jsx
+// or src/modules/admin/ui/AdminSidebar.jsx
+
 import { NavLink, Link } from "react-router-dom";
-import { FiHome, FiX, FiGrid, FiUser, FiCheckCircle,FiActivity } from "react-icons/fi";
+import {
+  FiHome,
+  FiX,
+  FiGrid,
+  FiUser,
+  FiCheckCircle,
+  FiActivity,
+  FiUsers,
+} from "react-icons/fi";
 import brandLogo from "../../../assets/AquaLogo.jpg";
 
-import { LuLogs,LuClipboardCheck } from "react-icons/lu";
+import { LuLogs, LuClipboardCheck } from "react-icons/lu";
 import { IoWaterOutline } from "react-icons/io5";
 import { MdQrCodeScanner } from "react-icons/md";
 import { PiWavesLight } from "react-icons/pi";
-import { TbQrcode } from "react-icons/tb";   // ← NEW: QR generate icon
+import { TbQrcode } from "react-icons/tb";
 
 const nav = [
-  { to: "/admin/aqua-culture/aqua-dashboard", label: "Dashboard", icon: FiHome },
+  {
+    to: "/admin/aqua-culture/aqua-dashboard",
+    label: "Dashboard",
+    icon: FiHome,
+  },
 
   { type: "section", label: "Aquaculture Ops" },
 
-  { to: "/admin/aqua-culture/owner-approval",     label: "Owner Approval", icon: FiUser },
-  { to: "/admin/aqua-culture/farm-pond-approval", label: "Farm Approval",  icon: IoWaterOutline },
-  { to: "/admin/aqua-culture/pond-approval",      label: "Pond Approval",  icon: PiWavesLight },
-  { to: "/admin/aqua-culture/daily-log",          label: "Daily Log",      icon: LuLogs },
-  { to: "/admin/aqua-culture/culture-cycle-approval",          label:"Culture Cycle Approval",      icon: LuClipboardCheck },
-  { to: "/admin/aqua-culture/aqua-harvest",       label: "Harvest",        icon: FiCheckCircle },
+  {
+    to: "/admin/aqua-culture/owner-approval",
+    label: "Owner Approval",
+    icon: FiUser,
+  },
+  {
+    to: "/admin/aqua-culture/farm-pond-approval",
+    label: "Farm Approval",
+    icon: IoWaterOutline,
+  },
+  {
+    to: "/admin/aqua-culture/pond-approval",
+    label: "Pond Approval",
+    icon: PiWavesLight,
+  },
+  {
+    to: "/admin/aqua-culture/daily-log",
+    label: "Daily Log",
+    icon: LuLogs,
+  },
+  {
+    to: "/admin/aqua-culture/culture-cycle-approval",
+    label: "Culture Cycle Approval",
+    icon: LuClipboardCheck,
+  },
+  {
+    to: "/admin/aqua-culture/aqua-harvest",
+    label: "Harvest",
+    icon: FiCheckCircle,
+  },
+
+  // NEW: Trader Approval
+  {
+    to: "/admin/aqua-culture/trader-approval",
+    label: "Trader Approval",
+    icon: FiUsers,
+  },
+
   {
     to: "/admin/aqua-culture/sampling-records",
     label: "Sampling Records",
     icon: FiActivity,
   },
-  { to: "/admin/aqua-culture/aqua-crate",         label: "Crate",          icon: MdQrCodeScanner },
-  { to: "/admin/aqua-culture/aqua-qr",            label: "Generate QR",    icon: TbQrcode },  // ← NEW
+  {
+    to: "/admin/aqua-culture/aqua-crate",
+    label: "Crate",
+    icon: MdQrCodeScanner,
+  },
+  {
+    to: "/admin/aqua-culture/aqua-qr",
+    label: "Generate QR",
+    icon: TbQrcode,
+  },
 ];
 
 export default function AdminSidebar({
@@ -72,7 +126,11 @@ export default function AdminSidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >
-        <SidebarInner collapsed={false} isMobile onCloseMobile={onCloseMobile} />
+        <SidebarInner
+          collapsed={false}
+          isMobile
+          onCloseMobile={onCloseMobile}
+        />
       </aside>
     </>
   );
@@ -82,7 +140,10 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
   const ACCENT = "#38bdf8";
 
   return (
-    <div className="relative flex h-full w-full flex-col" style={{ "--rv-accent": ACCENT }}>
+    <div
+      className="relative flex h-full w-full flex-col"
+      style={{ "--rv-accent": ACCENT }}
+    >
       {/* aura */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 -top-24 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.16),transparent_60%)]" />
@@ -103,7 +164,9 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
 
           {!collapsed && (
             <div>
-              <div className="text-lg font-extrabold tracking-tight text-white">RootVerse</div>
+              <div className="text-lg font-extrabold tracking-tight text-white">
+                RootVerse
+              </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">
                 Aquaculture Panel
               </div>
@@ -134,7 +197,10 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
           {nav.map((item, idx) => {
             if (item.type === "section") {
               return collapsed ? (
-                <div key={`sec-${idx}`} className="my-3 h-px w-full bg-white/10" />
+                <div
+                  key={`sec-${idx}`}
+                  className="my-3 h-px w-full bg-white/10"
+                />
               ) : (
                 <div
                   key={`sec-${idx}`}
@@ -155,19 +221,19 @@ function SidebarInner({ collapsed, isMobile, onCloseMobile }) {
                 className={({ isActive }) =>
                   [
                     "group relative flex items-center rounded-2xl overflow-hidden",
-                    collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 w-full px-4",
+                    collapsed
+                      ? "justify-center h-12 w-12 mx-auto"
+                      : "h-12 w-full px-4",
                     "transition-all duration-200",
 
                     isActive
                       ? "bg-white/6 ring-1 ring-white/10 shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
                       : "bg-transparent hover:bg-white/6 hover:ring-1 hover:ring-white/10 hover:shadow-[0_10px_24px_rgba(0,0,0,0.30)]",
 
-                    // aura
                     "before:content-[''] before:absolute before:inset-0 before:opacity-0 before:transition-opacity before:duration-200",
                     "before:bg-[radial-gradient(520px_circle_at_85%_50%,rgba(56,189,248,0.18),transparent_55%)]",
                     isActive ? "before:opacity-100" : "group-hover:before:opacity-100",
 
-                    // right active bar
                     "after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2",
                     collapsed ? "after:right-1 after:h-5" : "after:right-3 after:h-6",
                     "after:w-[3px] after:rounded-full after:opacity-0 after:transition-opacity after:duration-200",

@@ -59,6 +59,7 @@ import AquaQR from "../src/components/admin/aquaculture/AquaQR.jsx"; // ← NEW
 import CultureCycleApproval from "../src/components/admin/aquaculture/CultureCycle.jsx";
 import PondStockingByCultureCycle from "./components/admin/aquaculture/PondStockingCycle.jsx";
 import SamplingRecords from "./components/admin/aquaculture/SamplingRecords.jsx";
+import TraderApproval from "./components/admin/aquaculture/TraderApproval.jsx";
 
 
 import MariLayout from "./components/admin/mariculture/MariLayout";
@@ -84,6 +85,7 @@ import WaterLogPage from "./pages/Aquapage/WaterLogPage.jsx";
 import HealthLogPage from "./pages/Aquapage/HealthLogPage.jsx";
 import CrateAssignmentPage from "./pages/Aquapage/CrateAssignmentPage";
 import TraceabilityLookupPage from "./pages/Aquapage/TraceabilityLookupPage";
+
 
 // ===== Wild Capture (user console) imports – from HEAD =====
 import WildCaptureUserDashboard from "./pages/wildPage/WildCaptureDashboard";
@@ -137,6 +139,7 @@ export default function App() {
         <Route path="aqua-harvest" element={<AquaHarvest />} />
         <Route path="aqua-crate" element={<AquaCrate />} />
         <Route path="aqua-qr" element={<AquaQR />} />
+        <Route path="trader-approval" element={<TraderApproval />} />
         <Route
           path="culture-cycle-approval"
           element={<CultureCycleApproval />}
@@ -216,6 +219,7 @@ export default function App() {
         <Route path="logs/feed" element={<FeedLogPage />} />
         <Route path="logs/water" element={<WaterLogPage />} />
         <Route path="logs/health" element={<HealthLogPage />} />
+        
       </Route>
 
       {/* ===== WILD CAPTURE USER CONSOLE ===== */}
