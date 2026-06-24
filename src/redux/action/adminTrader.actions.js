@@ -1,7 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+
 import {
   fetchTradersApi,
   fetchTraderByIdApi,
+  updateTraderStatusApi,
 } from "../services/adminTrader.service";
 
 export const fetchAdminTraders = createAsyncThunk(
@@ -22,6 +24,25 @@ export const fetchAdminTraderById = createAsyncThunk(
       return await fetchTraderByIdApi(traderId);
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch trader details");
+    }
+  }
+);
+
+export const updateAdminTraderStatus = createAsyncThunk(
+  "adminTrader/updateStatus",
+  async ({ traderId, status }, { rejectWithValue }) => {
+    try {
+      const trader = await updateTraderStatusApi(traderId, status);
+
+      return {
+        traderId,
+        status,
+        trader,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to update trader status"
+      );
     }
   }
 );

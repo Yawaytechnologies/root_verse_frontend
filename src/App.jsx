@@ -77,7 +77,7 @@ import HarvestManagement from "./pages/mariculture/HarvestManagement";
 
 // ===== Trader Details Admin =====
 import TraderRegistryDashboard from "./pages/Trader/TraderRegistryDashboard.jsx";
-import TraderDetailPage from "./pages/Trader/TraderDetailPage.jsx";
+import TraderDetails from "./pages/Trader/TraderDetailPage.jsx";
 
 // ===== Aquaculture (user module) imports =====
 import AquacultureLayout from "./components/Aquaculture/AquacultureLayout.jsx";
@@ -208,8 +208,14 @@ export default function App() {
       </Route>
 
       {/* ===== Trader Details Admin ===== */}
-      <Route path="/admin/trader" element={<TraderRegistryDashboard />} />
-<Route path="/admin/trader/:traderId" element={<TraderDetailPage />} />
+      <Route
+  path="/admin/trader/dashboard"
+  element={<TraderRegistryDashboard />}
+/>
+<Route
+  path="/admin/trader/dashboard/:traderId"
+  element={<TraderDetails />}
+/>
 
 
 

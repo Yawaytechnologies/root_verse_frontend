@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 import {
   fetchAdminTraders,
   fetchAdminTraderById,
+  updateAdminTraderStatus,
 } from "../action/adminTrader.actions";
-import {
-  getTraderStatusKey,
-} from "../services/adminTrader.service";
+
+import { getTraderStatusKey } from "../services/adminTrader.service";
 
 const initialState = {
   items: [],
@@ -13,9 +14,11 @@ const initialState = {
 
   loading: false,
   detailLoading: false,
+  statusUpdating: {},
 
   error: "",
   detailError: "",
+  statusError: "",
 
   search: "",
   statusFilter: "all",
@@ -37,6 +40,10 @@ const adminTraderSlice = createSlice({
     clearSelectedTrader(state) {
       state.selectedTrader = null;
       state.detailError = "";
+    },
+
+    clearTraderStatusError(state) {
+      state.statusError = "";
     },
   },
 
@@ -67,6 +74,60 @@ const adminTraderSlice = createSlice({
       .addCase(fetchAdminTraderById.rejected, (state, action) => {
         state.detailLoading = false;
         state.detailError = action.payload || "Failed to fetch trader details";
+      })
+
+      .addCase(updateAdminTraderStatus.pending, (state, action) => {
+        const traderId = action.meta.arg.traderId;
+        state.statusUpdating[traderId] = true;
+        state.statusError = "";
+      })
+      .addCase(updateAdminTraderStatus.fulfilled, (state, action) => {
+        const { traderId, trader, status } = action.payload;
+
+        delete state.statusUpdating[traderId];
+
+        const finalStatus =
+          String(status).toLowerCase() === "approved"
+            ? "APPROVED"
+            : "REJECTED";
+
+        const fallbackTrader = {
+          id: traderId,
+          status: finalStatus,
+          approval_status: finalStatus,
+          verification_status: finalStatus,
+          is_active: finalStatus === "APPROVED",
+        };
+
+        const updatedTrader = trader || fallbackTrader;
+
+        const index = state.items.findIndex(
+          (item) => String(item.id) === String(traderId)
+        );
+
+        if (index !== -1) {
+          state.items[index] = {
+            ...state.items[index],
+            ...updatedTrader,
+          };
+        }
+
+        if (
+          state.selectedTrader &&
+          String(state.selectedTrader.id) === String(traderId)
+        ) {
+          state.selectedTrader = {
+            ...state.selectedTrader,
+            ...updatedTrader,
+          };
+        }
+      })
+      .addCase(updateAdminTraderStatus.rejected, (state, action) => {
+        const traderId = action.meta.arg.traderId;
+        delete state.statusUpdating[traderId];
+
+        state.statusError =
+          action.payload || "Failed to update trader status";
       });
   },
 });
@@ -75,6 +136,7 @@ export const {
   setTraderSearch,
   setTraderStatusFilter,
   clearSelectedTrader,
+  clearTraderStatusError,
 } = adminTraderSlice.actions;
 
 export const selectAdminTraderState = (state) => state.adminTrader;

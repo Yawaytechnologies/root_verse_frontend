@@ -97,6 +97,9 @@ export function getTraderStatusKey(trader) {
 
   if (rawStatus.includes("pending")) return "pending";
   if (rawStatus.includes("reject")) return "rejected";
+  if (rawStatus.includes("inactive")) return "rejected";
+  if (rawStatus.includes("deactive")) return "rejected";
+
   if (
     rawStatus.includes("approve") ||
     rawStatus.includes("active") ||
@@ -155,11 +158,7 @@ export function normalizeTraderList(payload) {
 }
 
 export function normalizeTraderDetail(payload) {
-  const raw =
-    payload?.data?.trader ||
-    payload?.trader ||
-    payload?.data ||
-    payload;
+  const raw = payload?.data?.trader || payload?.trader || payload?.data || payload;
 
   if (!raw || Array.isArray(raw)) return null;
 
@@ -183,7 +182,7 @@ export async function fetchTraderByIdApi(traderId) {
     const trader = normalizeTraderDetail(data);
     if (trader?.id) return trader;
   } catch {
-    // fallback below because your Swagger screenshot only confirms GET /api/traders
+    // fallback below because Swagger confirms GET /api/traders
   }
 
   const traders = await fetchTradersApi();
@@ -199,4 +198,34 @@ export async function fetchTraderByIdApi(traderId) {
   }
 
   return trader;
+}
+
+export async function updateTraderStatusApi(traderId, nextStatus) {
+  const statusKey = String(nextStatus || "").toLowerCase();
+
+  const isApprove = statusKey === "approved" || statusKey === "approve";
+
+  const apiStatus = isApprove ? "APPROVED" : "REJECTED";
+
+  const data = await apiRequest(`/api/traders/${traderId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status: apiStatus,
+      approval_status: apiStatus,
+      verification_status: apiStatus,
+      is_active: isApprove,
+    }),
+  });
+
+  const updatedTrader = normalizeTraderDetail(data);
+
+  return (
+    updatedTrader || {
+      id: traderId,
+      status: apiStatus,
+      approval_status: apiStatus,
+      verification_status: apiStatus,
+      is_active: isApprove,
+    }
+  );
 }

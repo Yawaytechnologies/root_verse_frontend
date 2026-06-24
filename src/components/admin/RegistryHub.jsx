@@ -25,7 +25,7 @@ const SECTORS = [
   { key:"aqua",   tag:"Aquaculture",      title:"Pond &\nFarm",          desc:"Land-based ponds and aquaculture farms.",        to:"/admin/aqua-culture",          img:aquaImg,   accent:"0,210,170" },
   { key:"mari",   tag:"Mariculture",      title:"Seaweed\nFarm",         desc:"Seaweed & marine cultivation units.",            to:"/admin/mari-culture",          img:mariImg,   accent:"0,190,160" },
   { key:"coc",    tag:"Chain of Custody", title:"Participant\nRegistry", desc:"PCCs, processors, transport & cold stores.",     to:"/admin/participant-registry",   img:cocImg,    accent:"210,160,0" },
-  { key:"trader", tag:"Trader",           title:"Trader\nRegistry",      desc:"Trader registration and trading operations.",     to:"/admin/trader",                 img:traderImg, accent:"0,170,230" },
+  { key:"trader", tag:"Trader",           title:"Trader\nRegistry",      desc:"Trader registration and trading operations.",     to:"/admin/trader/dashboard",                 img:traderImg, accent:"0,170,230" },
 ];
 
 const SEAWEEDS = [
