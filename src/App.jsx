@@ -60,6 +60,7 @@ import CultureCycleApproval from "../src/components/admin/aquaculture/CultureCyc
 import PondStockingByCultureCycle from "./components/admin/aquaculture/PondStockingCycle.jsx";
 import SamplingRecords from "./components/admin/aquaculture/SamplingRecords.jsx";
 import TraderApproval from "./components/admin/aquaculture/TraderApproval.jsx";
+import CrateAquaQrGenerator from "./components/admin/aquaculture/CrateAquaQrGenerator.jsx";
 
 
 import MariLayout from "./components/admin/mariculture/MariLayout";
@@ -73,6 +74,10 @@ import FarmRegistry from "./pages/mariculture/FarmRegistry";
 import CultivationUnits from "./pages/mariculture/CultivationUnits";
 import GrowthMonitoring from "./pages/mariculture/GrowthMonitoring";
 import HarvestManagement from "./pages/mariculture/HarvestManagement";
+
+// ===== Trader Details Admin =====
+import TraderRegistryDashboard from "./pages/Trader/TraderRegistryDashboard.jsx";
+import TraderDetailPage from "./pages/Trader/TraderDetailPage.jsx";
 
 // ===== Aquaculture (user module) imports =====
 import AquacultureLayout from "./components/Aquaculture/AquacultureLayout.jsx";
@@ -93,6 +98,7 @@ import TripsPage from "./pages/wildPage/TripsPage";
 import CatchLogsPage from "./pages/wildPage/CatchLogsPage";
 import VesselRegistryPage from "./pages/wildPage/VesselRegistryPage";
 import CratesPage from "./pages/wildPage/CratesPage";
+
 
 export default function App() {
   return (
@@ -140,6 +146,10 @@ export default function App() {
         <Route path="aqua-crate" element={<AquaCrate />} />
         <Route path="aqua-qr" element={<AquaQR />} />
         <Route path="trader-approval" element={<TraderApproval />} />
+        <Route
+  path="/admin/aqua-culture/aqua-crate-qr-generator"
+  element={<CrateAquaQrGenerator />}
+/>
         <Route
           path="culture-cycle-approval"
           element={<CultureCycleApproval />}
@@ -196,6 +206,12 @@ export default function App() {
           element={<QualityControllerListing />}
         />
       </Route>
+
+      {/* ===== Trader Details Admin ===== */}
+      <Route path="/admin/trader" element={<TraderRegistryDashboard />} />
+<Route path="/admin/trader/:traderId" element={<TraderDetailPage />} />
+
+
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
       <Route path="/mariculture" element={<MaricultureLayout />}>

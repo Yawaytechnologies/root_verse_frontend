@@ -24,6 +24,8 @@ import aquacultureQrReducer from "../reducer/aquacultureQRSlice"
 import cultureCycleApprovalReducer from "../reducer/culturalCycleSlice";
 import samplingReducer from "../reducer/samplingSlice";
 import traderReducer from "../reducer/traderSlice";
+import crateQrAquaReducer from "../reducer/crateQrAquaSlice";
+import adminTraderReducer from "../reducer/adminTrader.slice";
 
 export const store = configureStore({
   reducer: {
@@ -51,5 +53,8 @@ export const store = configureStore({
     cultureCycleApproval: cultureCycleApprovalReducer,
     sampling: samplingReducer,
     traderApproval: traderReducer,
+    crateQrAqua: crateQrAquaReducer,
+    adminTrader: adminTraderReducer,
+
   },
 });

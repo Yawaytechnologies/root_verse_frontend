@@ -5,6 +5,7 @@ import wildImg from "../../assets/wild.jpg";
 import aquaImg from "../../assets/aqua.jpg";
 import mariImg from "../../assets/mari.jpg";
 import cocImg  from "../../assets/logistics.jpg";
+import traderImg from "../../assets/trader.jpg";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -20,10 +21,11 @@ const FISH_COLORS = [
 
 /** Per-sector card configuration */
 const SECTORS = [
-  { key:"wild", tag:"Wild Capture",     title:"Vessel\nTracking",      desc:"All wild-capture fishing vessels and boats.", to:"/admin/wild-capture",        img:wildImg, accent:"0,160,220" },
-  { key:"aqua", tag:"Aquaculture",      title:"Pond &\nFarm",          desc:"Land-based ponds and aquaculture farms.",    to:"/admin/aqua-culture",        img:aquaImg, accent:"0,210,170" },
-  { key:"mari", tag:"Mariculture",      title:"Seaweed\nFarm",         desc:"Seaweed & marine cultivation units.",        to:"/admin/mari-culture",        img:mariImg, accent:"0,190,160" },
-  { key:"coc",  tag:"Chain of Custody", title:"Participant\nRegistry", desc:"PCCs, processors, transport & cold stores.", to:"/admin/participant-registry", img:cocImg,  accent:"210,160,0" },
+  { key:"wild",   tag:"Wild Capture",     title:"Vessel\nTracking",      desc:"All wild-capture fishing vessels and boats.",     to:"/admin/wild-capture",          img:wildImg,   accent:"0,160,220" },
+  { key:"aqua",   tag:"Aquaculture",      title:"Pond &\nFarm",          desc:"Land-based ponds and aquaculture farms.",        to:"/admin/aqua-culture",          img:aquaImg,   accent:"0,210,170" },
+  { key:"mari",   tag:"Mariculture",      title:"Seaweed\nFarm",         desc:"Seaweed & marine cultivation units.",            to:"/admin/mari-culture",          img:mariImg,   accent:"0,190,160" },
+  { key:"coc",    tag:"Chain of Custody", title:"Participant\nRegistry", desc:"PCCs, processors, transport & cold stores.",     to:"/admin/participant-registry",   img:cocImg,    accent:"210,160,0" },
+  { key:"trader", tag:"Trader",           title:"Trader\nRegistry",      desc:"Trader registration and trading operations.",     to:"/admin/trader",                 img:traderImg, accent:"0,170,230" },
 ];
 
 const SEAWEEDS = [
@@ -200,7 +202,7 @@ function SectorCard({ s, i, mouse }){
         position:"relative",flex:1,height:"100%",overflow:"hidden",
         display:"flex",flexDirection:"column",justifyContent:"flex-end",
         textDecoration:"none",
-        borderRight: i<3 ? "1px solid rgba(0,200,180,0.08)" : "none",
+        borderRight: i < SECTORS.length - 1 ? "1px solid rgba(0,200,180,0.08)" : "none",
         animation:`cardRise 0.6s ease-out ${i*0.12}s both`,
       }}
     >

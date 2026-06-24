@@ -10,8 +10,8 @@ import {
   FiPackage,
   FiBox,
   FiSearch,
-  // FiLogOut, // keep commented until you actually need logout
 } from "react-icons/fi";
+import { MdQrCodeScanner } from "react-icons/md";
 
 const logItems = [
   { label: "Feed Log", path: "/aquaculture/logs/feed", icon: FiLayers },
@@ -33,6 +33,12 @@ export default function Sidebar() {
   const activeClass = "bg-sky-200 text-slate-900 border border-sky-400";
   const normalClass = "text-slate-900 hover:bg-sky-100";
 
+  const qrActiveClass =
+    "relative bg-[#143027] text-emerald-50 border border-[#1f463b] shadow-sm after:absolute after:right-3 after:top-2 after:bottom-2 after:w-[3px] after:rounded-full after:bg-emerald-300";
+
+  const qrNormalClass =
+    "text-slate-900 hover:bg-sky-100 border border-transparent";
+
   const isActive = (path, exact = true) => {
     if (exact) return location.pathname === path;
     return location.pathname.startsWith(path);
@@ -46,6 +52,7 @@ export default function Sidebar() {
           <div className="h-9 w-9 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-slate-900 text-xl font-bold">
             RV
           </div>
+
           <div>
             <p className="text-sm font-semibold text-slate-900">RootVerse</p>
             <p className="text-xs text-slate-500">Traceability Portal</p>
@@ -63,9 +70,7 @@ export default function Sidebar() {
         <Link
           to="/aquaculture/dashboard"
           className={`flex items-center gap-2 rounded-md px-3 py-2 transition ${
-            isActive("/aquaculture/dashboard")
-              ? activeClass
-              : normalClass
+            isActive("/aquaculture/dashboard") ? activeClass : normalClass
           }`}
         >
           <FiGrid className="text-[15px]" />
@@ -80,9 +85,7 @@ export default function Sidebar() {
         <Link
           to="/aquaculture/ponds"
           className={`flex items-center gap-2 rounded-md px-3 py-2 transition ${
-            isActive("/aquaculture/ponds", false)
-              ? activeClass
-              : normalClass
+            isActive("/aquaculture/ponds", false) ? activeClass : normalClass
           }`}
         >
           <FiList className="text-[15px]" />
@@ -97,6 +100,7 @@ export default function Sidebar() {
         {logItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
+
           return (
             <Link
               key={item.path}
@@ -124,7 +128,6 @@ export default function Sidebar() {
               : normalClass
           }`}
         >
-          {/* Unique icon for harvest batches */}
           <FiPackage className="text-[15px]" />
           <span>Harvest Batches</span>
         </Link>
@@ -132,14 +135,23 @@ export default function Sidebar() {
         <Link
           to="/aquaculture/crates"
           className={`flex items-center gap-2 rounded-md px-3 py-2 transition ${
-            isActive("/aquaculture/crates", false)
-              ? activeClass
-              : normalClass
+            isActive("/aquaculture/crates", false) ? activeClass : normalClass
           }`}
         >
-          {/* Different icon for crates (not reusing Health) */}
           <FiBox className="text-[15px]" />
           <span>Crate Assignments</span>
+        </Link>
+
+        <Link
+          to="/aquaculture/crate-qr-generator"
+          className={`flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition ${
+            isActive("/aquaculture/crate-qr-generator", false)
+              ? qrActiveClass
+              : qrNormalClass
+          }`}
+        >
+          <MdQrCodeScanner className="text-[18px]" />
+          <span>Crate QR Generator</span>
         </Link>
 
         {/* Traceability */}
@@ -150,22 +162,12 @@ export default function Sidebar() {
         <Link
           to="/aquaculture/traceability"
           className={`flex items-center gap-2 rounded-md px-3 py-2 transition ${
-            isActive("/aquaculture/traceability")
-              ? activeClass
-              : normalClass
+            isActive("/aquaculture/traceability") ? activeClass : normalClass
           }`}
         >
           <FiSearch className="text-[15px]" />
           <span>Crate Lookup</span>
         </Link>
-
-        {/* If you want logout later, uncomment and use */}
-        {/* 
-        <button className="mt-4 w-full flex items-center gap-2 rounded-md px-3 py-2 text-left text-red-700 hover:bg-red-50 border border-red-200 text-sm">
-          <FiLogOut className="text-[15px]" />
-          <span>Logout</span>
-        </button>
-        */}
       </nav>
     </aside>
   );
