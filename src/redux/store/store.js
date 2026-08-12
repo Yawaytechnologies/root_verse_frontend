@@ -26,6 +26,7 @@ import samplingReducer from "../reducer/samplingSlice";
 import traderReducer from "../reducer/traderSlice";
 import crateQrAquaReducer from "../reducer/crateQrAquaSlice";
 import adminTraderReducer from "../reducer/adminTrader.slice";
+import adminProcessorReducer from "../reducer/adminProcessor.slice";
 
 export const store = configureStore({
   reducer: {
@@ -55,6 +56,7 @@ export const store = configureStore({
     traderApproval: traderReducer,
     crateQrAqua: crateQrAquaReducer,
     adminTrader: adminTraderReducer,
+    adminProcessor: adminProcessorReducer,
 
   },
 });

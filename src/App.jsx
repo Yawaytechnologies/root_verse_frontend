@@ -44,6 +44,10 @@ import OwnerRegistration from "./components/admin/wildcapture/OwnerRegister.jsx"
 import QrGeneratorPage from "./components/admin/wildcapture/AdminQrGenerator.jsx";
 import VesselOwner from "./components/admin/wildcapture/VesselOwner.jsx";
 import TripApproval from "./components/admin/wildcapture/TripApproval.jsx";
+import TradeprocessLayout from "./components/admin/trader processor/TradeprocessLayout.jsx";
+import TradeprocessDashboard from "./components/admin/trader processor/TradeprocessDashboard.jsx";
+import TraderSignApproval from "./components/admin/trader processor/TraderApproval.jsx";
+import ProcessorApproval from "./components/admin/trader processor/ProcessorApproval.jsx";
 
 //Aqua admin module imports
 import AquaLayout from "./components/admin/aquaculture/AquaLayout";
@@ -59,7 +63,7 @@ import AquaQR from "../src/components/admin/aquaculture/AquaQR.jsx"; // ← NEW
 import CultureCycleApproval from "../src/components/admin/aquaculture/CultureCycle.jsx";
 import PondStockingByCultureCycle from "./components/admin/aquaculture/PondStockingCycle.jsx";
 import SamplingRecords from "./components/admin/aquaculture/SamplingRecords.jsx";
-import TraderApproval from "./components/admin/aquaculture/TraderApproval.jsx";
+import AquaTraderApproval from "./components/admin/aquaculture/TraderApproval.jsx";
 import CrateAquaQrGenerator from "./components/admin/aquaculture/CrateAquaQrGenerator.jsx";
 
 
@@ -75,9 +79,8 @@ import CultivationUnits from "./pages/mariculture/CultivationUnits";
 import GrowthMonitoring from "./pages/mariculture/GrowthMonitoring";
 import HarvestManagement from "./pages/mariculture/HarvestManagement";
 
-// ===== Trader Details Admin =====
-import TraderRegistryDashboard from "./pages/Trader/TraderRegistryDashboard.jsx";
-import TraderDetails from "./pages/Trader/TraderDetailPage.jsx";
+
+// ===== Processor Admin =====
 
 // ===== Aquaculture (user module) imports =====
 import AquacultureLayout from "./components/Aquaculture/AquacultureLayout.jsx";
@@ -145,7 +148,7 @@ export default function App() {
         <Route path="aqua-harvest" element={<AquaHarvest />} />
         <Route path="aqua-crate" element={<AquaCrate />} />
         <Route path="aqua-qr" element={<AquaQR />} />
-        <Route path="trader-approval" element={<TraderApproval />} />
+        <Route path="trader-approval" element={<AquaTraderApproval />} />
         <Route
   path="/admin/aqua-culture/aqua-crate-qr-generator"
   element={<CrateAquaQrGenerator />}
@@ -207,17 +210,18 @@ export default function App() {
         />
       </Route>
 
-      {/* ===== Trader Details Admin ===== */}
-      <Route
-  path="/admin/trader/dashboard"
-  element={<TraderRegistryDashboard />}
-/>
-<Route
-  path="/admin/trader/dashboard/:traderId"
-  element={<TraderDetails />}
-/>
+      {/* ===== Trader & Processor Admin ===== */}
+      <Route path="/admin/trader" element={<TradeprocessLayout />}>
+        <Route index element={<TradeprocessDashboard />} />
+        <Route path="dashboard" element={<TradeprocessDashboard />} />
+        <Route path="approval" element={<TraderSignApproval />} />
+        <Route path="processor-approval" element={<ProcessorApproval />} />
+      </Route>
 
-
+      <Route path="/admin/processor" element={<TradeprocessLayout />}>
+        <Route index element={<TradeprocessDashboard />} />
+        <Route path="dashboard" element={<TradeprocessDashboard />} />
+      </Route>
 
       {/* ===== SEPARATE MARICULTURE MODULE (user) ===== */}
       <Route path="/mariculture" element={<MaricultureLayout />}>
